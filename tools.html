@@ -4,8 +4,8 @@
     <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-	  
-    <!-- Global site tag (gtag.js) - Google Analytics -->
+	
+	<!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116225806-1"></script>
     <script>
   	window.dataLayer = window.dataLayer || [];
@@ -14,7 +14,7 @@
 
   	gtag('config', 'UA-116225806-1');
     </script>
-	  
+	
     <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
     <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
@@ -25,9 +25,11 @@
     <![endif]-->
 	
 	<script type="text/javascript">
-		function Show(id)
+		function Show(classname)
 		{
-			
+			document.getElementsByClassName("EmptyBox")[0].style.display='none';
+			document.getElementsByClassName("PreffixSuffix")[0].style.display='none';
+			document.getElementsByClassName(classname)[0].style.display='block';
 		}
 	
 		function AddPrefix()
@@ -76,26 +78,16 @@
 
     <div id="content-wrapper">
       <div class="inner clearfix">
-        <section id="main-content" class="PreffixSuffix" style="display:block;">
+	  
+		<section id="main-content" class="EmptyBox" style="display:block;">
 
+			<h2>A box that does nothing. How about that. </h2>
 			<br />
-			<input type="text" id="prefix" value="" placeholder="prefix" style="-webkit-appearance: none; -moz-appearance: none; border: 2px solid #eee; -webkit-border-radius: 5px; -moz-border-radius: 5px; border-radius: 5px; width:65%; height:35px; font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif; font-size: 17px; padding-left: 10px; padding-right: 10px;">
-			<a href=#! class="button" style="color: blue;" onclick="AddPrefix()">
-				Add Prefix
-			</a>
-			<br /><br />
-			
-			<input type="text" id="suffix" value="" placeholder="suffix" style="-webkit-appearance: none; -moz-appearance: none; border: 2px solid #eee; -webkit-border-radius: 5px; -moz-border-radius: 5px; border-radius: 5px; width:65%; height:35px; font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif; font-size: 17px; padding-left: 10px; padding-right: 10px;">
-			<a href=#! class="button" style="color: blue;" onclick="AddSuffix()">
-				Add Suffix
-			</a>
-			
-			<br /><br /><br /><br />
 			<textarea id="iobox" style="resize: none; -webkit-appearance: none; -moz-appearance: none; border: 2px solid #eee; -webkit-border-radius: 5px; -moz-border-radius: 5px; border-radius: 5px; width: 92%; height: 380.994px; padding: 25px; font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif; font-size: 17px;" rows="4" wrap="on"></textarea>
 
 		</section>
 		
-		<section id="main-content" class="ColumnExtractor" style="display:none;">
+        <section id="main-content" class="PreffixSuffix" style="display:none;">
 
 			<br />
 			<input type="text" id="prefix" value="" placeholder="prefix" style="-webkit-appearance: none; -moz-appearance: none; border: 2px solid #eee; -webkit-border-radius: 5px; -moz-border-radius: 5px; border-radius: 5px; width:65%; height:35px; font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif; font-size: 17px; padding-left: 10px; padding-right: 10px;">
@@ -115,14 +107,17 @@
 		</section>
 
         <aside id="sidebar">
-          <a href=# class="button">
-            <small>Add</small>
-            Prefix/Suffix
-          </a>
-          <a href=# class="button">
-            <small>Extract</small>
-            Column
-          </a>
+		
+		
+		<a href=#! class="button" onclick="Show('EmptyBox');">
+            <small>Empty</small>
+            Box
+		</a>
+		<a href=#! class="button" onclick="Show('PreffixSuffix');">
+			<small>Prefix</small>
+            Suffix
+		</a>
+
 
         </aside>
       </div>
