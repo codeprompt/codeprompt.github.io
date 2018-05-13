@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Gold Parser Engine</title>
+	<script type="text/javascript">
+		function spoiler(id)
+		{
+			if(document.getElementById(id).style.display=='none') 
+				document.getElementById(id).style.display='';
+			else document.getElementById(id).style.display='none';
+		}
+	</script>
+	<style>
+		a, a:link, a:visited, a:hover, a:active, div.comment
+		{
+			color : #33cc33; 
+			font: italic 14px Georgia, serif;
+		}
+	</style>
+</head>
+
+<body style="margin-left : 20px; ">
+
+<!-- TITLE -->
+	<h2 style="background-color : #f2f2f2; "><br />Gold Parser Engine</h2><br /><br />
+
+<!-- BODY -->
+
+	<!-- Point -->
+	<a href=#! class="comment" onclick="spoiler('w10z5k1j359T')" style="margin-left : 30px;">1. Contents</a>
+	<div class="comment" id="w10z5k1j359T" style="margin-left : 60px; margin-right : 150px">
+		<br />
+		
+			1. Contents.<br />
+			2. Intro.<br />
+			3. The Token system(parse tree).<br />
+			4. The Grammar system - DFA/LALR.<br />
+			5. The Lexer/Parser.<br />
+			6. The Deserialization system.<br />
+			
+	<br /></div><br />
+	
+	<!-- Point text -->
+	<a href=#! class="comment" onclick="spoiler('arsHmxSeaM0P')" style="margin-left : 30px;">2. Intro</a>
+	<div class="comment" id="arsHmxSeaM0P" style="margin-left : 60px; margin-right : 150px">
+		<br />
+
+			Here is a brief explanation of how parsers work. I strongly advise that anyone trying to understand these blueprints should have a prior knowledge of the subject, otherwise one can find the provided information frustratingly insufficient, as this is oversimplified and just scratching the surface. <br />
+			<br />
+			<br />
+			A parser is a program that takes a string input and produces a syntax tree structure in form of some classes that can later be manipulated programmatically. It is used whenever some text is constructed following some rules and that text must be made sense of in order to extract data from it or be manipulated, following said rules. Syntax highlighters in integrated development environments use this in order to be able to make sense of the input source code and color different words properly. Also, programing language compilers use parsing as those tools are essentially translators from a high-level language to assembly language. Different programming language translators use parsing as well, for example, a program that converts C# or JavaScript source code to Java source code. Also, our human languages can be parsed in order to extract data. Bottom line - whenever source code manipulation must be performed a well constructed and efficient parser is needed.<br />
+			<br />
+			A parser follows a set of rules called a language grammar to parse the given input text. This grammar might be inbuilt in the parser, provided to the parser as text or as precompiled grammar file, like in our case. Grammars are written in some form - this varies from a parser to parser. It is some metalanguage but in modern parsers, it is almost always some form of BNF or EBNF implementation. BNF stands for Backus–Naur Forms and EBNF stands for Extended Backus–Naur Forms.<br />
+			<br />
+			There are different kinds of parsers, and most have some limitations on the grammar syntax allowed. The most popular parsers used today are of the LALR type, which also has some limitations but is really powerful and fast, and sufficient enough for most of the current programming languages. There are parser types that don't have grammar limitations but are significantly slower and thus rarely used. Also, various grammars for LALR parser engines are available online for free.<br />
+			<br />
+			A parser doesn't follow the grammar directly, but instead a set of rules that dictate actions to be taken in different situations. That being said, a grammar needs to be verified to make sure it complies with the restrictions, and most of the time the grammar is automatically optimized and then converted to a set of such rules, and often written to a file. Because of that, most modern parsers are not built by programmers anymore. Instead, one writes a grammar and compiles it to a set of rules using a tool, in order to use the grammar with universal parser engine, or the grammar compiler outputs the parser source code in the desired language with the inbuilt set of rules in it, instead.<br />
+			<br />
+			Almost always in modern parsers parsing is done in two stages - a lexical and syntactical stage, and thus a parser consists of two tools - a lexical analyzer, also called a Tokenizer that produces units called lexemes or Terminals - that is the equivalent of words in our spoken language(English for example). The second tool is the syntactical analyzer that creates syntactical units that are also called Nonterminals - that is the equivalent of sentences and probably bigger units like paragraphs and chapters of a book in our spoken language(English for example). Both tools need a different set of rules to act upon. Those are both produced when the grammar is compiled and put in a single file. Also, in some limited cases, one would only need a lexical analyzer to be created, and many tools and engines allow that as well.<br />
+			<br />
+			So, what we have here is the schematics for the "Gold Parser Engine" - (2 stage - lexer/parser DFA, LALR(1)parser), without the grammar compiler (in another document), and it consists of the following :<br />
+			1. The Token system is the parse tree. Getting the parse tree structure is the goal and it(the token structure) can be manipulated in code. It holds various information about the parsed source - a unit from this tree contains the information of the position of its elements in the original source code. It can be used to construct a more convenient AST structure(stands for Abstract Syntax Tree) that can be manipulated easier. It can also be traversed to source code after all the desired manipulations are done.<br />
+			2. The grammars - DFA for the lexer and LALR for the parser are the rules to be used, in our case precompiled in grammar files. I will be using the word grammar somehow interchangeably in this text to refer to either the set of Backus–Naur Forms or the set of rules compiled from the Backus–Naur Forms.<br />
+			3. The engine itself consists of the Lexer and Parser tools that, using the set of grammar rules parse the input string to syntax units.<br />
+			4. The deserialization system is simply used to read the compact structure of a compiled grammar file and turn it to set of rules in the form of different classes the parser and lexer understand.<br />
+			
+	<br /></div><br />
+	
+	<!-- Point text -->
+	<a href=#! class="comment" onclick="spoiler('MEhX4K76q4qX')" style="margin-left : 30px;">3. Parse Tree (The Token System).</a>
+	<div class="comment" id="MEhX4K76q4qX" style="margin-left : 60px; margin-right : 150px">
+		<br />
+
+			A Parse tree is a structure that can be accessed recursively. <br />
+			In most cases, it consists of a parent element class from which terminals and nonterminals inherit. Nonterminals consist of terminals and other nonterminals, while terminals are the basic building block. Both should contain the start and end location they represent in source code string. Also, both must be easily traversable to source code - for example by just calling .ToString() on a parse tree will return the source code the tree represents.<br />
+			<br />
+			AST trees are similar, but they are more specific and easier to manipulate - For example an AST tree might consist of different classes for different language constructs - for example, namespace object that accepts 'class' and 'struct' objects as children and probably has methods like '.AddClass(Class child)' and '.AddStruct(Struct child)', but not methods, fields, or expression objects. It can also contain methods like '.RenameChild(string oldname, string newname)'. AST trees are more prohibitive and are language specific. They are also heavier and more resource intensive to work with. For that reason, lexers and parsers work with parse trees that and programmers prefer to work with ASTs.<br />
+			<br />
+			In the case of the Gold Parser Engine, the base source unit is the "Symbol". Also, reduction rules are part of the Nonterminal symbols, which seems a bit unusual, at least for me. It is also worth noting that no AST system is implemented in the engine<br />
+			<br />
+			A rule is a building block of a grammar - Each grammar consists of rules, also called productions. A rule has a left-hand side and right-hand side. For example "&lt;A&gt; ::= &lt;B&gt; 'text' &lt;C&gt; " which means "Non terminal 'A' is Non terminal named 'B', followed by Terminal 'text', followed by Non terminal named 'C'". Those productions are compiled into rules and in this case, we have a Shift-reduce parser so those are called Reduction rules.<br />
+			<br />
+			<br />
+			
+			<hr />
+			<table style="width:100%; background-color : #ffffcc; margin:0; padding:0; color : #000000; font: bold italic 10px Georgia, serif;">
+    
+			<!-- rows -->
+			<tr>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">The symbol system represents a simple lexeme, on top of which more complex Token system is implemented. Each symbol has id and text - that is the Name field. Some don't require text as it is the same every time.</span></td>
+				<td style="width:50%"></td> 
+			</tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+
+			<tr>
+				<td style="width:50%">Symbol == Symbol</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">Symbol != Symbol</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			
+			<tr>
+				<td style="width:50%">SymbolNonterminal : Symbol</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.int</td>
+				<td style="width:50%">Id
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.string</td>
+				<td style="width:50%">Name
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.ToString()</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">'&lt;name&gt;'</span></td> 
+			</tr>
+			
+			<tr>
+				<td style="width:50%">SymbolTerminal : Symbol</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.int</td>
+				<td style="width:50%">Id
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.string</td>
+				<td style="width:50%">Name
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.ToString()</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">'name'</span></td> 
+			</tr>
+			
+			<tr>
+				<td style="width:50%">SymbolWhiteSpace : Symbol</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.int</td>
+				<td style="width:50%">Id
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.string</td>
+				<td style="width:50%">Name
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">='(Whitespace)'</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.ToString()</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">'(Whitespace)'</span></td> 
+			</tr>
+			
+			<tr>
+				<td style="width:50%">SymbolEnd : Symbol</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.int</td>
+				<td style="width:50%">Id
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.string</td>
+				<td style="width:50%">Name
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">='(EOF)'</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.ToString()</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">'(EOF)'</span></td> 
+			</tr>
+			
+			<tr>
+				<td style="width:50%">SymbolCommentStart : Symbol</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.int</td>
+				<td style="width:50%">Id
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.string</td>
+				<td style="width:50%">Name
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">='(Comment Start)'</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.ToString()</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">'(Comment Start)'</span></td> 
+			</tr>
+			
+			<tr>
+				<td style="width:50%">SymbolCommentEnd : Symbol</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.int</td>
+				<td style="width:50%">Id
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.string</td>
+				<td style="width:50%">Name
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">='(Comment End)'</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.ToString()</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">'(Comment End)'</span></td> 
+			</tr>
+			
+			<tr>
+				<td style="width:50%">SymbolCommentLine : Symbol</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.int</td>
+				<td style="width:50%">Id
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.string</td>
+				<td style="width:50%">Name
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">='(Comment Line)'</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.ToString()</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">'(Comment Line)'</span></td> 
+			</tr>
+			
+			<tr>
+				<td style="width:50%">SymbolError : Symbol</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.int</td>
+				<td style="width:50%">Id
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.string</td>
+				<td style="width:50%">Name
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">='(ERROR)'</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.ToString()</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">'(ERROR)'</span></td> 
+			</tr>
+
+			</table>
+			<br /><br />
+			
+			<table style="width:100%; background-color : #ffffcc; margin:0; padding:0; color : #000000; font: bold italic 10px Georgia, serif;">
+    
+			<!-- rows -->
+			<tr>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">The Rule consists of the symbols that can be reduced to another symbol.</span></td>
+				<td style="width:50%"></td> 
+			</tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr>
+				<td style="width:50%">Rule</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.int</td>
+				<td style="width:50%">Id
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.SymbolNonterminal</td>
+				<td style="width:50%">Lhs
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;Left hand side.</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Symbol[]</td>
+				<td style="width:50%">Rhs
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;Right hand side.</span></td> 
+			</tr>
+			</table>
+			<br /><br />
+			
+			<table style="width:100%; background-color : #ffffcc; margin:0; padding:0; color : #cccccc; font: bold italic 10px Georgia, serif;">
+    
+			<!-- rows -->
+			<tr>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">A location object - defines a token position in source code (in the Tokenizer system).</span></td>
+				<td style="width:50%"></td> 
+			</tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr>
+				<td style="width:50%">Location</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.int</td>
+				<td style="width:50%">Position
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.int</td>
+				<td style="width:50%">LineNr
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.int</td>
+				<td style="width:50%">ColumnNr
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.NextLine()</td>
+				<td style="width:50%">&emsp;&emsp;&emsp;
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.NextColumn()</td>
+				<td style="width:50%">&emsp;&emsp;&emsp;
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+
+			</table>
+			<br /><br />
+			
+			<table style="width:100%; background-color : #ffffcc; margin:0; padding:0; color : #000000; font: bold italic 10px Georgia, serif;">
+    
+			<!-- rows -->
+			<tr>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">The Token system is the actual parse tree. The abstract class Token representing both terminal and nonterminal tokens is the base of the parse tree.</span></td>
+				<td style="width:50%"></td> 
+			</tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr>
+				<td style="width:50%">TerminalToken : Token</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.string</td>
+				<td style="width:50%">Text
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.SymbolTerminal</td>
+				<td style="width:50%">Symbol
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Location</td>
+				<td style="width:50%">Location
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.ToString()</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">'Text'</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">NonterminalToken : Token</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Token[]</td>
+				<td style="width:50%">Tokens
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Rule</td>
+				<td style="width:50%">Rule
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;The rule that caused the reduction.</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.SymbolNonterminal</td>
+				<td style="width:50%">Symbol
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.ToString()</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">'name = [Text1Text2Text3]'</span></td> 
+			</tr>
+			</table>
+			<hr />
+			
+	<br /></div><br />
+	
+	<!-- Point text -->
+	<a href=#! class="comment" onclick="spoiler('vRJi55WG8VhX')" style="margin-left : 30px;">4. The Grammar system - DFA/LALR.</a>
+	<div class="comment" id="vRJi55WG8VhX" style="margin-left : 60px; margin-right : 150px">
+		<br />
+
+			A DFA based lexer will start at a state named with a symbol and will go to a different next state depending on what character is red. The DFA is a structure representing a set of rules and a state-holder.<br />
+			Each State has Transitions that can be executed. Each Transition has one or more characters - each character can trigger the transition to the destination state. So, when the DFA is asked to react to a character it looks at the current state it's in, looks at all the possible transitions for this state and searches for one that will be triggered by the given character. When found, the current state is set to the one that the triggered transition points at.<br />
+			Some states are accepting states. This means that the string red so far can be legally interpreted as a token. Some lexers will acknowledge that and return the token, while others, like this, for example, will wait until no other transitions are possible and only will then return the longest possible token. This behavior varies from lexer to lexer and can be set sometimes, but in this case is not settable and the longest accepted string will be returned. At this point, the DFA is reset to the start state.<br />
+			On the other hand, why the field containing all the states ("States") is necessary I don't know, it might not be necessary at all.<br />
+			
+			<br /><br />
+			
+			<hr />
+			<table style="width:100%; background-color : #ffffcc; margin:0; padding:0; color : #000000; font: bold italic 10px Georgia, serif;">
+    
+			<!-- rows -->
+			<tr>
+				<td style="width:50%">DFA</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.State</td>
+				<td style="width:50%">StartState
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.int</td>
+				<td style="width:50%">&emsp;&emsp;&emsp;Id
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.Transition[]</td>
+				<td style="width:50%">&emsp;&emsp;&emsp;Transitions
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;A transition (edge) between DFA states.</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.State</td>
+				<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Target
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;The target state.</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.char[]</td>
+				<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;CharSet
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;The criteria for the transition.</span></td> 
+			</tr>
+			
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.State</td>
+				<td style="width:50%">CurrentState
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;The current state in the DFA.</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.int</td>
+				<td style="width:50%">&emsp;&emsp;&emsp;Id
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.Transition[]</td>
+				<td style="width:50%">&emsp;&emsp;&emsp;Transitions
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;A transition (edge) between DFA states.</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.State</td>
+				<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Target
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;The target state.</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.char[]</td>
+				<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;CharSet
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;The criteria for the transition.</span></td> 
+			</tr>
+			
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.State[]</td>
+				<td style="width:50%">States
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.int</td>
+				<td style="width:50%">&emsp;&emsp;&emsp;Id
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.Transition[]</td>
+				<td style="width:50%">&emsp;&emsp;&emsp;Transitions
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;A transition (edge) between DFA states.</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.State</td>
+				<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Target
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;The target state.</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.char[]</td>
+				<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;CharSet
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;The criteria for the transition.</span></td> 
+			</tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.(State[], State)</td>
+				<td style="width:50%">states, startState
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Reset()</td>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">Sets DFA to starting state to get a new token.</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.GotoNext(char)&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;-> State</td>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">Goto next state depending on an input character.</td> 
+			</tr>
+
+			</table>
+			<hr />
+			<br /><br />
+			
+				The LALR set of rules is pretty much the same as the DFA - DFA can output the new state for a character or no possible state meaning an error in the input being parsed - the LALR dictionary is used to get a new state for a Symbol. <br />
+				There are different actions that guide the parser what to do, and "Action" is the base class for those.
+			<br /><br />
+			
+			<hr />
+			<table style="width:100%; margin:0; padding:0; background-color : #ffffcc; color : #000000; font: bold italic 10px Georgia, serif;">
+    
+			<!-- rows -->
+			<tr>
+				<td style="width:50%">AcceptAction : Action</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.SymbolTerminal</td>
+				<td style="width:50%">Symbol 
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;The symbol that a token must be for it to be accepted.</span></td> 
+			</tr>
+			
+			<tr>
+				<td style="width:50%">ShiftAction : Action</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.SymbolTerminal</td>
+				<td style="width:50%">Symbol 
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;The criteria for this action to be done.</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.LALRState</td>
+				<td style="width:50%">State 
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;&emsp;The new current state for the LALR parser.</span></td> 
+			</tr>
+			
+			<tr>
+				<td style="width:50%">GotoAction : Action</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.SymbolNonterminal</td>
+				<td style="width:50%">Symbol 
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;The criteria for this action to be done.</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.LALRState</td>
+				<td style="width:50%">State 
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;&emsp;The new current state for the LALR parser.</span></td> 
+			</tr>
+			
+			<tr>
+				<td style="width:50%">ReduceAction : Action</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.SymbolNonterminal</td>
+				<td style="width:50%">Symbol 
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;The criteria for this action to be done.</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Rule</td>
+				<td style="width:50%">rule 
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;The rule to reduce the tokens.</span></td> 
+			</tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			
+			<tr>
+				<td style="width:50%">LALRState</td>
+				<td style="width:50%">
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.int</td>
+				<td style="width:50%">Id 
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Dictionary&lt;Symbol, Action&gt;</td>
+				<td style="width:50%">Actions 
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+
+			
+			
+			</table>
+			
+			
+			
+			
+			<table></table>
+			
+			
+			<hr />
+	<br /><br /><br /></div><br />
+	
+	<!-- Point text -->
+	<a href=#! class="comment" onclick="spoiler('2K06Tqiniver')" style="margin-left : 30px;">5. Lexer/Parser engine.</a>
+	<div class="comment" id="2K06Tqiniver" style="margin-left : 60px; margin-right : 150px">
+		<br />
+		The Lexer is used to create Terminal tokens from the source sequentially, one at a time. While some lexers will tokenize the entire string in order to be parsed later, most act like a stream, retrieving one token at a time and advancing the input. The input can also be skipped to or after a character so, for example, in situation where comments are ignored one can skip to after a new line character.<br />
+		The lexer needs it's DFA and an input string in order to function. The input string is set into string reader wrapper and parsed one token at a time following the DFA instructions.<br />
+		The "DFAInput" is basically a string reader, and the "Location" is a structure that identifies the position in the source code.
+		
+		
+		<br /><br /><br />
+		<hr />
+		<table style="width:100%; margin:0; padding:0; background-color : #ffffcc; color : #000000; font: bold italic 10px Georgia, serif;">
+			<tr>
+				<td style="width:50%">StringTokenizer</td>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">The Lexer</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.GetInput()&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;-> State</td>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">Gets the input string for the tokenizer.</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.SetInput(string)</td>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">Sets the input string for the tokenizer.</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.GetCurrentLocation()&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;-&gt; Location</td>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">Gets the location where the tokenizer is.</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.SetCurrentLocation(Location)</td>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">Sets the location where the tokenizer is.</td> 
+			</tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+						
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.(DFA)</td>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;"></td> 
+			</tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			
+			<tr>
+				<td style="width:50%; color : #0000ff;">&emsp;&emsp;&emsp;_DFA</td>
+				<td style="width:50%; color : #0000ff;">_dfa</td> 
+			</tr>
+			<tr>
+				<td style="width:50%; color : #0000ff;">&emsp;&emsp;&emsp;_DFAInput</td>
+				<td style="width:50%; color : #0000ff;">_input</td> 
+			</tr>
+							
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.RetrieveToken()&emsp;&emsp;&nbsp;&nbsp;&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;-&gt; TerminalToken</td>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.SkipToChar(char)&nbsp;&nbsp;&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;-&gt; bool</td>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.SkipAfterChar(char)&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;-&gt; bool</td>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;"></td> 
+			</tr>
+			
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			
+			<tr>
+				<td style="width:50%">DFAInput</td>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">Input(string) reader.</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.string</td>
+				<td style="width:50%">Text</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Location</td>
+				<td style="width:50%">Location</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.int</td>
+				<td style="width:50%">Position
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;Location.Position</span></td> 
+			</tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.ReadChar()&emsp;&emsp;&emsp;&emsp;&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;-&gt; char</td>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">Reads a character and updates location.</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.ReadCharNoUpdate()&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;-&gt; char</td>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">Reads a character without updating the location.</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.SkipToChar(char)&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;-&gt; bool</td>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">Skips characters in the input until a certain character is found.</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.SkipAfterChar(char)&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;-&gt; bool</td>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">Skips characters in the input until after a certain character is found.</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.IsEof()&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;-&gt; bool</td>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">Determines if the input has reached the end.</td> 
+			</tr>
+			
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			
+			<tr>
+				<td style="width:50%">Location</td>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.int</td>
+				<td style="width:50%">Position
+				<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;&emsp;The zero-based position.</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.int</td>
+				<td style="width:50%">LineNr
+				<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;The zero-based line number.</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.int</td>
+				<td style="width:50%">ColumnNr
+				<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;The zero-based column number.</span></td> 
+			</tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.NextLine()</td>
+				<td style="width:50%"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.NextColumn()</td>
+				<td style="width:50%"></td> 
+			</tr>
+			
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+							
+		</table><br />
+		<div class="comment" style="color : #0000ff;">
+						<span style="font-weight: bold;">RetrieveToken()									-&gt;TerminalToken</span><br /><br />
+							Reset the DFA before new token can be retrieved. Preserve starting location.<br />
+							If position > length return EOF 'TerminalToken'.<br />
+							Else read a char from input, advance dfa with this char and get the resulting state.<br />
+							while resulting dfa state is not null, if the dfa state is accepting - preserve the current State and input location and symbol.<br />
+							if input.IsEof() set state to null else get next state. Continue, until the dfa returns null state.<br />
+							If no accepting State and input location had been set we have an error - <br />
+							return new ERROR 'TerminalToken' with the string taht's been red and location. get string been red by substring start location from the input.<br />
+							Else set input Location to the one preserved with the last accepting State. Retrieve text by substringing.<br />
+							return new 'TerminalToken' with the string been red and location and the accepted symbol.<br />
+						</div><hr /><br />
+			
+		<br /><br />
+		The parser generates Nonterminal structure(the parse tree) in the form of a single Nonterminal(representing the root of the tree) and it's child nodes as branches, while the Terminal child nodes are the leaves of the tree. The parser needs a tokenizer to stream tokens from and a set of rules to follow that come in the form of the LALRState "StartState".<br />
+		The parser also contains a collection of expected symbols that can be retrieved should an error occur, and a set of events that can be subscribed to, in order to monitor the parsing process - basicly when the parser performs an action a corresponding event is raised. A consumer code can subscribe to these events in order to log the process or specify some behavior - like whether the parsing should continue in case of a specific error(what is meant by error is a token stream not complying to the grammar rules, of course not software bugs or exceptions). <br />
+		Below are the EventArgs structures that are used when subscribing to those events.
+		<br /><br /><br />
+		
+		<table style="width:100%; margin:0; padding:0; background-color : #ffffcc; color : #000000; font: bold italic 10px Georgia, serif;">
+		
+		
+			<tr>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">TokenReadHandler OnTokenRead  - Token has been read and will be parsed. Accepts "TokenReadEventArgs".</td>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">TokenReadEventArgs</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.TerminalToken</td>
+				<td style="width:50%">Token
+				<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;The terminal token that will be processed.</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.bool</td>
+				<td style="width:50%">Continue
+				<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&nbsp;&nbsp;&nbsp;&emsp;If the parseing should continue after this event.</span></td> 
+			</tr>
+			
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">ShiftHandler	OnShift  - Called when a token is shifted onto the stack. Accepts "ShiftEventArgs".</td>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">ShiftEventArgs</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.TerminalToken</td>
+				<td style="width:50%">Token
+				<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;The terminal token that is shifted onto the stack.</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.LALRState</td>
+				<td style="width:50%">NewState
+				<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&nbsp;&nbsp;&emsp;The state that the parser is in after the shift.</span></td> 
+			</tr>
+			
+			
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">ReduceHandler	OnReduce  - Called when tokens are reduced. Accepts "ReduceEventArgs".</td>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">ReduceEventArgs</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Rule</td>
+				<td style="width:50%">Rule
+				<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&nbsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;The rule that was used to reduce tokens.</span></td>  
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.NonterminalToken</td>
+				<td style="width:50%">Token
+				<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&emsp;&nbsp;&nbsp;&nbsp;Consists of tokens that has been reduced by the rule.</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.LALRState</td>
+				<td style="width:50%">State
+				<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&nbsp;&nbsp;&nbsp;&emsp;&nbsp;&emsp;&nbsp;&nbsp;The state after the reduction.</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.bool</td>
+				<td style="width:50%">Continue
+				<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&nbsp;&nbsp;&nbsp;&emsp;If the parse process should continue after this event.</span></td> 
+			</tr>
+
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">GotoHandler	OnGoto  - Called when a goto occurs (after a reduction). Accepts "GotoEventArgs".</td>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">GotoEventArgs</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.SymbolNonterminal</td>
+				<td style="width:50%">Symbol
+				<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&nbsp;&nbsp;&emsp;&emsp;The symbol that causes the goto event.</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.LALRState</td>
+				<td style="width:50%">NewState
+				<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&nbsp;&nbsp;&nbsp;&emsp;The state after the goto event.</span></td> 
+			</tr>
+			
+			
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">AcceptHandler	OnAccept  - Called if the parser is finished and the input has been accepted. Accepts "AcceptEventArgs".</td>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">AcceptEventArgs</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.NonterminalToken</td>
+				<td style="width:50%">Token
+				<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&emsp;&emsp;The fully reduced nonterminal token.</span></td> 
+			</tr>
+			
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">TokenErrorHandler OnTokenError  - Called when the tokenizer cannot recognize the input. Accepts "TokenErrorEventArgs".</td>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">TokenErrorEventArgs</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.TerminalToken</td>
+				<td style="width:50%">Token
+				<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&emsp;&emsp;The error token.</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.bool</td>
+				<td style="width:50%">Continue
+				<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If true continue and ignore current token.(= false)</span></td> 
+			</tr>
+			
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">ParseErrorHandler OnParseError  - Called when the parser has a token it cannot parse. Accepts "ParseErrorEventArgs". The ContinueMode enum is used to specify behaviour. ContinueMode.Stop - not try to parse the rest of the input. ContinueMode.Insert will insert the user provided Terminal in order to patch a missing token and fix the production, continuing with the token caused the error. This is the purpose of the "NextToken" field - to provide this terminal. ContinueMode.Skip will just ignore the current bad token and proceed to parse the input as if nothing happened.</td>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">ParseErrorEventArgs</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.TerminalToken</td>
+				<td style="width:50%">Unexpected
+				<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&nbsp;&nbsp;&nbsp;&nbsp;The token that caused this parser error.</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Symbol[]</td>
+				<td style="width:50%">Expected
+				<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The symbols that were expected by the parser.</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.ContinueMode</td>
+				<td style="width:50%">Continue
+				<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= ContinueMode.Stop</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.Stop</td>
+				<td style="width:50%"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.Insert</td>
+				<td style="width:50%"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.Skip</td>
+				<td style="width:50%"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.TerminalToken</td>
+				<td style="width:50%">NextToken
+				<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= null</span></td> 
+			</tr>
+			
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">CommentReadHandler OnCommentRead  - Called when a comment section has been read. Accepts "CommentReadEventArgs".</td>
+				<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">CommentReadEventArgs</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.string</td>
+				<td style="width:50%">Comment
+				<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&emsp;&nbsp;&nbsp;The comment, including comment characters.</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.string</td>
+				<td style="width:50%">Content
+				<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&emsp;&emsp;&nbsp;The content of the comment.</span></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.bool</td>
+				<td style="width:50%">LineComment
+				<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&nbsp;&nbsp;&nbsp;&nbsp;Determines if it is a line or block comment.</span></td> 
+			</tr>
+			
+			
+			
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+							
+		</table><br />
+		
+		<table style="width:100%; margin:0; padding:0; background-color : #ffffcc; color : #000000; font: bold italic 10px Georgia, serif;">
+							
+			<tr>
+				<td style="width:50%">LALRParser</td>
+				<td style="width:50%"></td> 
+				</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;.TokenReadHandler</td>
+								<td style="width:50%">OnTokenRead</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;.ShiftHandler</td>
+								<td style="width:50%">OnShift</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;.ReduceHandler</td>
+								<td style="width:50%">OnReduce</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;.GotoHandler</td>
+								<td style="width:50%">OnGoto</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;.AcceptHandler</td>
+								<td style="width:50%">OnAccept</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;.TokenErrorHandler</td>
+								<td style="width:50%">OnTokenError</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;.ParseErrorHandler</td>
+								<td style="width:50%">OnParseError</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;.CommentReadHandler</td>
+								<td style="width:50%">OnCommentRead</td> 
+							</tr>
+							<tr><td style="width:50%">&emsp;</td></tr>		
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;.bool</td>
+								<td style="width:50%">TrimReductions</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;.StoreTokensMode</td>
+								<td style="width:50%">StoreTokens
+									<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;Always, NoUserObject, Never</span></td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;.(IStringTokenizer, State[], State, Symbol[])</td>
+								<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">tokenizer, states, startState, symbols</td> 
+							</tr>
+							
+							
+										<tr><td style="width:50%">&emsp;</td></tr>
+										<tr><td style="width:50%">&emsp;</td></tr>
+							<tr>
+								<td style="width:50%; color : #0000ff;">&emsp;&emsp;&emsp;_StringTokenizer</td>
+								<td style="width:50%; color : #0000ff;">_tokenizer</td> 
+							</tr>
+							<tr>
+								<td style="width:50%; color : #0000ff;">&emsp;&emsp;&emsp;_State[]</td>
+								<td style="width:50%; color : #0000ff;">_states</td> 
+							</tr>
+							<tr>
+								<td style="width:50%; color : #0000ff;">&emsp;&emsp;&emsp;_State</td>
+								<td style="width:50%; color : #0000ff;">_startState</td> 
+							</tr>
+							<tr>
+								<td style="width:50%; color : #0000ff;">&emsp;&emsp;&emsp;_Stack&lt;State&gt;</td>
+								<td style="width:50%; color : #0000ff;">_stateStack</td> 
+							</tr>
+							<tr>
+								<td style="width:50%; color : #0000ff;">&emsp;&emsp;&emsp;_Stack&lt;Token&gt;</td>
+								<td style="width:50%; color : #0000ff;">_tokenStack</td> 
+							</tr>
+							<tr>
+								<td style="width:50%; color : #0000ff;">&emsp;&emsp;&emsp;_TerminalToken</td>
+								<td style="width:50%; color : #0000ff;">_lookahead</td> 
+							</tr>
+							<tr><td style="width:50%">&emsp;</td></tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;.Parse(string)&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;-> NonterminalToken</td>
+								<td style="width:50%">input
+								<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;Parse the input with tokens and rules.</span></td> 
+							</tr>
+		</table>
+		<br /><br /><br />
+				<div class="comment" style="color : #0000ff;">
+						<span style="font-weight: bold;">Parse(string)									-&gt;NonterminalToken</span><br /><br />
+							Reset everything - including setting new laxer with the input string. <br />
+							While a flag indicates to continue parsing - get lookahead 'TerminalToken', and if it is not null parse it. After parsing it If the accepted flag is set to return the 'NonterminalToken' - the object on top of the token stack (it represents the parse tree root). <br />
+							- Get Lookahead: Set the "lookahead" field if we don't have a comment or whitespace token, else try to handle it and try with another token. Try to perform OnTokenRead if it had been set.<br />
+							- Handle comment by: skipping the tokenizer to the first '\n' symbol and if OnCommentRead event is present call it with start and end locations of the comment.<br />
+							- Handle multiline comment: start by counting comment start and comment ends until out of comment, but if EOF symbol is met - set EOF token on the token stack and fire error. perform 'OnCommentRead' if it had been set.<br />
+							- Handle whitespace by doing nothing.<br />
+							- Handle error - if 'OnTokenError' event had been assigned execute it and get from its 'TokenErrorEventArgs' argument wether execution should continue 'true' or not 'false', else return false - handling failed, execution should stop.<br />
+
+							- ParseTerminal - Peek the LALR-State on from the state stack, and get the action corresponding to the lookahead symbol. If the action is shift - doShift, if Reduce - do reduce, if Accept - do Accept, else stop parsing and fire OnParseError if set.<br />
+
+							- DoShift by pushing the state of the shift action on the state stack, push the token on the token stack, reset lookahead field for another round and execute the OnShift event if it had been set.<br />
+							- DoAccept by stopping parsing, set accept flag to true and execute OnAccept event if it had been set.<br />
+							- DoReduce by - Get Rule length for this ReduceAction. If 'TrimReductions' is set and the rule right side consists of only one single 'NonterminalToken' then remove this state from the state stack and peek another state to be set as current state. Else for as many times as the number of symbols in the right side of the above-mentioned rule - remove a state from the state stack and remove Tokens from the token stack and backward-fill an array with these tokens. Then create 'NonterminalToken' with this array and the 'Rule' being used and push it on the token stack. Also set the current state by Peaking it from the state stack. Also if OnReduce is set - call OnReduce and call DoReleaseTokens. Get 'GotoAction' with the currentState and the left hand side of the used rule. If there is no GotoAction with the symbol we have invalid action table and throw exception. else perform doGoto.<br />
+							- DoGoto by pushing the state of the 'GotoAction' on the state stack and performing 'OnGoto' if set.<br />
+							- DoReleaseTokens by removing child tokens from the nonterminal if 'StoreTokens' option is set to 'NoUserObject' or 'Never'<br /> 
+				</div><hr /><br /><br />
+	</div><br />
+	
+	
+
+	<!-- Point text -->
+	<a href=#! class="comment" onclick="spoiler('x7h6W0GZBdzu')" style="margin-left : 30px;">6. The Deserialization system.</a>
+	<div class="comment" id="x7h6W0GZBdzu" style="margin-left : 60px; margin-right : 150px">
+		<br /> <br />
+		The deserialization system allows parsers and lexers to be created from compiled grammar tables compacted to a file.<br />
+		The CGTReader (stands for Compiled Grammar Table) gets filename or filestream as an input and returns a lexer or a parser with the corresponding rules. These rules are the DFA and the LALR and are the compiled grammar table.<br />
+		Those rules are compacted in a CGTStructure that consists of Records and each record consists of Entries. Think of an entry as a single value that occupies a number of bytes in a file and of a record as a sequence of such Entries. The system is not some serialized .net object or anything but a plain old-school file structure that is read few bytes at a time.<br />
+		The CGTContent are elements of the DFA and the LALR each represented by a different kind of record. The CGTStructure is translated to CGTContent structure from which the actual DFA and LALR classes are constructed.
+		<br /><br /><br />
+		<hr />
+		<table style="width:100%; margin:0; padding:0; background-color : #ffffcc; color : #000000; font: bold italic 10px Georgia, serif;">
+			<tr>
+				<td style="width:50%">CGTReader</td>
+				<td style="width:50%"></td> 
+			</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;.(Stream)</td>
+								<td style="width:50%"></td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;.(string)</td>
+								<td style="width:50%"></td> 
+							</tr>
+							<tr><td style="width:50%">&emsp;</td></tr>
+							<tr><td style="width:50%">&emsp;</td></tr>
+
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;.CreateNewTokenizer()&emsp;&emsp;&emsp;&nbsp;&nbsp;-> StringTokenizer</td>
+								<td style="width:50%">
+								<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">Creates DFA and lexer with it.</span></td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;.CreateNewParser()&emsp;&emsp;&emsp;&emsp;&emsp;-> LALRParser</td>
+								<td style="width:50%">
+								<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">Creates DFA and lexer with it. Creates a new LALR structure and a new LALR parser with the lexer and the LALR structure.</span></td> 
+							</tr>
+		</table>
+		
+		<br />
+		<table style="width:100%; margin:0; padding:0; background-color : #ffffcc; color : #000000; font: bold italic 10px Georgia, serif;">
+			<tr>
+				<td style="width:50%">CGTStructure</td>
+				<td style="width:50%"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.string</td>
+				<td style="width:50%">Header</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Record[]</td>
+				<td style="width:50%">Records</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.Entry[]</td>
+				<td style="width:50%">Entries</td> 
+			</tr>
+		</table>
+		
+		<br />
+		<table style="width:100%; margin:0; padding:0; background-color : #ffffcc; color : #000000; font: bold italic 10px Georgia, serif;">
+			<tr>
+				<td style="width:50%">CGTContent</td>
+				<td style="width:50%"></td> 
+			</tr>
+							<tr>
+								<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">Miscellaneous parameters of the compiled grammar.</td>
+								<td style="width:50%"></td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;.Parameters</td>
+								<td style="width:50%">Parameters</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.string</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;Name</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.string</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;Version</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.string</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;Author</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.string</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;About</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.bool</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;CaseSensitive</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.int</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;StartSymbol</td> 
+							</tr>
+							<tr><td style="width:50%">&emsp;</td></tr>
+							
+							<tr>
+								<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">How many record there are for different things.</td>
+								<td style="width:50%"></td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;.TableCounts</td>
+								<td style="width:50%">TableCounts</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.int</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;SymbolTableCount</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.int</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;CharacterSetTableCount</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.int</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;RuleTableCount</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.int</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;DFATableCount</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.int</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;LALRTableCount</td> 
+							</tr>
+							<tr><td style="width:50%">&emsp;</td></tr>
+							
+							<tr>
+								<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">Collection of records that define symbols.</td>
+								<td style="width:50%"></td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;.SymbolRecord[]</td>
+								<td style="width:50%">SymbolTable</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.int</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;Index</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.string</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;Name</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.int</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;Kind</td> 
+							</tr>
+							<tr><td style="width:50%">&emsp;</td></tr>
+							
+							<tr>
+								<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">Collection of records that define character sets.</td>
+								<td style="width:50%"></td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;.CharacterSetRecord[]</td>
+								<td style="width:50%">CharacterSetTable</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.int</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;Index</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.string</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;Characters</td> 
+							</tr>
+							<tr><td style="width:50%">&emsp;</td></tr>
+							
+							<tr>
+								<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">Collection of records that define character rules to reduce tokens.</td>
+								<td style="width:50%"></td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;.RuleRecord[]</td>
+								<td style="width:50%">RuleTable</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.int</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;Index</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.int</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;Nonterminal</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.int[]</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;Symbols</td> 
+							</tr>
+							<tr><td style="width:50%">&emsp;</td></tr>
+							<tr><td style="width:50%">&emsp;</td></tr>
+							
+							<tr>
+								<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">The starting states for the DFA and LALR parser.</td>
+								<td style="width:50%"></td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;.InitialStatesRecord</td>
+								<td style="width:50%">InitialStatesRecord</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.int</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;DFA</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.int</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;LALR</td> 
+							</tr>
+							<tr><td style="width:50%">&emsp;</td></tr>
+							
+							<tr>
+								<td style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">Collection of records that define a DFA state.</td>
+								<td style="width:50%"></td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;.DFAStateRecord[]</td>
+								<td style="width:50%">DFAStateTable</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.int</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;Index</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.bool</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;AcceptState</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.int</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;AcceptIndex</td> 
+							</tr>
+							
+							
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.EdgeSubRecord[]</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;EdgeSubRecords
+								<span style="width:50%; margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;The edges between DFA states.</span></td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.int</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;CharacterSetIndex</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.int</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;TargetIndex</td> 
+							</tr>
+							<tr><td style="width:50%">&emsp;</td></tr>
+							
+							
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;.LALRStateRecord[]</td>
+								<td style="width:50%">LALRStateTable</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.int</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;Index</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.ActionSubRecord[]</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;ActionSubRecords</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.int</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;SymbolIndex</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.int</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Action</td> 
+							</tr>
+							<tr>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;.int</td>
+								<td style="width:50%">&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Target</td> 
+							</tr>
+		</table>
+		<hr />
+	<br /></div><br />
+	
+
+<!-- FOOTER -->
+	<br /><br /><br /><br />
+	<h2 style="background-color : #f2f2f2; "><br /><br /></h2>
+
+</body>
+</html>
