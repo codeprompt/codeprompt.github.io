@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+	
 	<title>Sequential-byte serializer</title>
 	<script type="text/javascript">
 		function spoiler(id)
@@ -16,13 +24,16 @@
 			color : #33cc33; 
 			font: italic 14px Georgia, serif;
 		}
+		
+
 	</style>
 </head>
 
 <body style="margin-left : 20px; font-size: 14px;">
 
 <!-- TITLE -->
-	<h2 style="background-color : lime; font-size: 25px;"><br />Sequential-byte serializer</h2><br />
+	<h2 style="background-color : lime;  font-size: 25px;"><br />Sequential-byte serializer</h2>
+	<br />
 
 <!-- BODY -->
 
@@ -39,6 +50,7 @@
 			6. Point Map<br />
 			7. Member Map - Reader<br />
 			8. Member Map - Writer<br />
+			9. Credits<br />
 			
 	<br /></div><br />
 	
@@ -62,10 +74,10 @@
 				Also, I don't know where the original source came from, so if you do, I would be grateful if you let me know. (I know what I've reversed, but it was probably copy-pasted from another place, and I would very much like to find the original source code)<br /><br />
 				
 				Credits: this is reversed from the Gold Parser system, though I believe this particular code was rewritten from somewhere else. Some might wonder why I'm reversing the Gold parser and writing articles on the matter, and the reason is that I'm developing my own parser system for a few projects of mine and wanted to see how it is done, and the "Gold Parser" is a wonderful open-source example with grammars freely available for almost any major programming language, and I advise anyone to check their website should one need a free and powerful parser system :
-				<br />http://www.goldparser.org/
+				<br />http://codeprompt.github.io/sequential-byte-serializer
 				<br /><br /> 
 
-				Also, you can read and download a .html or .pdf of this and other articles on my website: <br />https://codeprompt.github.io/Sequential-byte-serializer.htm
+				Also, you can read and download a .html or .pdf of this and other articles on my website: <br />http://codeprompt.github.io/sequential-byte-serializer
 	<br /><br /></div><br />
 	
 	<!-- Point text -->
@@ -513,8 +525,7 @@
 			<div class="comment" style="color : #0000ff;">
 			<span style="font-weight: bold;">_WriteRecord()</span><br />
 				&emsp;&emsp;&emsp;If there are no entries in "_CurrentRecord" return.<br />
-				&emsp;&emsp;&emsp;Else, for each entry, act according to its type by writing the byte code representing that type, cast its value and write it.<br />
-				&emsp;&emsp;&emsp;Here is how this works:<br />
+				&emsp;&emsp;&emsp;Else, for each entry, act according to its type by writing the byte code representing that type, <br />&emsp;&emsp;&emsp;cast its value and write it.Here is how this works:<br />
 				<br />
 				&emsp;&emsp;&emsp;If the "entry.Type" is "Boolean"<br />
 				&emsp;&emsp;&emsp;->RawWriteByte(66)<br />
@@ -529,13 +540,28 @@
 				&emsp;&emsp;&emsp;->RawWriteByte(83)<br />
 				&emsp;&emsp;&emsp;->Convert.ToString(x)<br />
 				&emsp;&emsp;&emsp;->RawWriteCString(x)<br />
-					. . .<br />
+				&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;For each char of the string - get its charcode and write it as ushort<br />
+				&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;->RawWriteInt16(charcode)<br />
 				<br />
 				&emsp;&emsp;&emsp;Else if the "entry.Type" is "UInt16"<br />
 				&emsp;&emsp;&emsp;->RawWriteByte(73)<br />
 				&emsp;&emsp;&emsp;->Convert.ToInt32(x)<br />
-				&emsp;&emsp;&emsp;->RawWriteInt16(x)<br />
-					. . .<br />
+				&emsp;&emsp;&emsp;->RawWriteInt16(x)<br /><br />
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Get 2 bytes from the ushort "x".<br />
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;This is done by right-shifting the value by 8 for each byte other than the least-significant one,<br />&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;because when casting to byte only the least significant byte is taken and the rest is cut off.<br />&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;The logical and with 255, on the other hand, don't change the value at all but is used to implicitly cast to byte.<br />&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;It is redundant in our case where we use an explicit cast to byte and can be omitted altogether.<br /><br />
+					
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;byte a = (byte)(value & 255);<br />
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;(int)value:&nbsp;&nbsp;1101 0010 0011 1000<br />
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;(int)  255:&nbsp;&nbsp;&nbsp;&nbsp;0000 0000 1111 1111<br />
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;bitwise &:&nbsp;&nbsp;0000 0000 0011 1000<br />
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;to byte:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0011 1000<br /><br />
+					
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;byte b = (byte)(value >> 8 & 255);<br />
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;(int)value:&nbsp;&nbsp;&nbsp;1101 0010 0011 1000<br />
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;>> 8:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0000 0000 1101 0010<br />
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;(int)  255:&nbsp;&nbsp;&nbsp;&nbsp;0000 0000 1111 1111<br />
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;bitwise &:&nbsp;&nbsp;&nbsp;0000 0000 1101 0010<br />
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;to byte:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1101 0010<br />
 				<br />
 				&emsp;&emsp;&emsp;Else, write "69" for empty.<br />
 				&emsp;&emsp;&emsp;->RawWriteByte(69)<br />
@@ -573,12 +599,23 @@
 			<hr />
 			
 			
-	</div><br />
+	</div><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
 	
+	<!-- Point text -->
+	<a href=#! class="comment" onclick="spoiler('arsHmxSeaM0P')" style="margin-left : 30px;">9. Credits</a>
+	<div class="comment" id="arsHmxSeaM0P" style="margin-left : 60px; margin-right : 150px">
+		<br />
 
+				Special credits to users Sentry and Rotem on stackoverflow.com for explaining the bitwise operations and casting to byte.
+	<br /></div>
 <!-- FOOTER -->
 	<br /><br />
-	<h2 style="background-color : lime; "><br /><br /></h2>
+	<h2 style="background-color : lime; "><br />
+	<span style="font: bold italic 14px Georgia, serif; color:gray; margin-left:10px;">Viktor Chernev (vchernev91@abv.bg)</span>
+	<br />
+	<span style="font: bold italic 14px Georgia, serif; color:gray; margin-left:10px;">https://codeprompt.github.io/Sequential-byte-serializer.htm</span>
+	<br />
+	<span style="font: bold italic 14px Georgia, serif; color:gray; margin-left:10px; font-size: 12px;">24 Jun 2018</span></h2>
 
 </body>
 </html>
