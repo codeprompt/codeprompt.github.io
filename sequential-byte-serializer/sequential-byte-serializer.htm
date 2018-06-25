@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+	
+	<title>Sequential-byte serializer</title>
+	<script type="text/javascript">
+		function spoiler(id)
+		{
+			if(document.getElementById(id).style.display=='none') 
+				document.getElementById(id).style.display='';
+			else document.getElementById(id).style.display='none';
+		}
+	</script>
+	<style>
+		a, a:link, a:visited, a:hover, a:active, div.comment
+		{
+			color : #33cc33; 
+			font: italic 14px Georgia, serif;
+		}
+		
+		/* buttons */
+		section.press button 
+		{
+		  color: #fff;
+		  background-color: #6496c8;
+		  border: none;
+		  border-radius: 15px;
+		  box-shadow: 0 10px #27496d;
+		}
+		section.press button:hover,
+		section.press button.hover 
+		{
+		  background-color: #417cb8
+		}
+		section.press button:active,
+		section.press button.active 
+		{
+		  background-color: #417cb8;
+		  box-shadow: 0 5px #27496d;
+		  transform: translateY(5px);
+		}
+
+	</style>
+</head>
+
+<body style="margin-left : 20px; font-size: 14px;">
+
+<!-- TITLE -->
+	<h2 style="background-color : lime;  font-size: 25px;"><br />Sequential-byte serializer</h2>
+	<section class="press">
+		<form method="get" action="sequential-byte-serializer.pdf">
+					<button class="press" style="position: absolute; right: 67px; top: 26px; height: 34px; width: 40px;">pdf</button>
+		</form>
+		<form method="get" action="sequential-byte-serializer-scr-cs.htm">
+					<button class="press" style="position: absolute; right: 25px; top: 26px; height: 34px; width: 40px;">scr</button>
+		</form>
+		
+		
+		
+	</section>
+	<br />
+
+<!-- BODY -->
+
+	<!-- Point -->
+	<a href=#! class="comment" onclick="spoiler('w10z5k1j359T')" style="margin-left : 30px;">1. Contents</a>
+	<div class="comment" id="w10z5k1j359T" style="margin-left : 60px; margin-right : 150px; display:none;">
+		<br />
+		
+			1. Contents.<br />
+			2. Introduction<br />
+			3. Background<br />
+			4. Using the code<br />
+			5. Overview<br />
+			6. Credits<br />
+			7. Point Map<br />
+			8. Member Map - Reader<br />
+			9. Member Map - Writer<br />
+			
+	<br /></div><br />
+	
+	<!-- Point text -->
+	<a href=#! class="comment" onclick="spoiler('arsHmxSeaM0P')" style="margin-left : 30px;">2. Introduction</a>
+	<div class="comment" id="arsHmxSeaM0P" style="margin-left : 60px; margin-right : 150px; display:none;">
+		<br />
+
+				This is a set of classes for serializing and deserializing data to and from a file.   <br /><br />
+
+				It is most common to serialize .Net objects to JSON, XML or using the provided mechanism in the .Net framework which writes the in-memory bytes representing a given object to a file.<br /><br />
+				This, however, is a system for sequentially writing bytes to a file organized in entries and records, and thus representing a file format of its own.
+	<br /><br /></div><br />
+	
+	<!-- Point text -->
+	<a href=#! class="comment" onclick="spoiler('arssmxSeaM0P')" style="margin-left : 30px;">3. Background</a>
+	<div class="comment" id="arssmxSeaM0P" style="margin-left : 60px; margin-right : 150px; display:none;">
+		<br />
+				I got this code by reversing an app and thought it might be interesting and useful. <br /><br />
+
+				Also, I don't know where the original source came from, so if you do, I would be grateful if you let me know. (I know what I've reversed, but it was probably copy-pasted from another place, and I would very much like to find the original source code)<br /><br />
+				
+				Credits: this is reversed from the Gold Parser system, though I believe this particular code was rewritten from somewhere else. Some might wonder why I'm reversing the Gold parser and writing articles on the matter, and the reason is that I'm developing my own parser system for a few projects of mine and wanted to see how it is done, and the "Gold Parser" is a wonderful open-source example with grammars freely available for almost any major programming language, and I advise anyone to check their website should one need a free and powerful parser system :
+				<br />http://www.goldparser.org
+				<br /><br /> 
+
+				Also, you can read and download a .html or .pdf of this and other articles on my website: <br />https://codeprompt.github.io/sequential-byte-serializer/sequential-byte-serializer.htm
+	<br /><br /></div><br />
+	
+	<!-- Point text -->
+	<a href=#! class="comment" onclick="spoiler('arssmxSeaMQP')" style="margin-left : 30px;">4. Using the code</a>
+	<div class="comment" id="arssmxSeaMQP" style="margin-left : 60px; margin-right : 150px; display:none;">
+		<br />
+					In few words, the system contains a reader and a writer, along with its own exception class.<br /><br />
+
+					A reader is created for a file and used to read data, while the writer is created for a given file path and used to write data, just like regular .Net file streams on top of which those are actually created.<br /><br />
+
+					The information is organized in records, each containing entries, so each object that needs to be serialized will be represented by a record and each field - represented by an entry - which represents a single boxed primitive value in the form of an object and a Type expressed by an EntryType enumeration.<br /><br />
+
+					A thing to note here is how this limits the type of objects that can be serialized to ones containing only primitive value fields, so, if an object containing fields of non-primitive types must be serialized, those fields need to be substituted with fields of type "int" pointing to object indexes and of-course "int index" fields need to be added on the other hand, to the referenced objects when serializing those.
+	<br /><br /></div><br />
+	
+	<!-- Point text -->
+	<a href=#! class="comment" onclick="spoiler('arssmxSeaMzP')" style="margin-left : 30px;">5. Overview</a>
+	<div class="comment" id="arssmxSeaMzP" style="margin-left : 60px; margin-right : 150px; display:none;">
+		<br />
+						IOException is A simple exception class, no different than the regular .Net exception,
+						which it inherits, existing only for the sake of the name.<br /><br />
+						
+						
+						An entry represents a single storable value. <br /><br />
+						It has a Value - an object that boxes the primitive which the entry represents, and a Type - indicating the primitive type that the entry represents (Empty/UInt16/String/Boolean/Byte/Error). Working with those entry objects is very convenient when one does not know the type of the value that will be retrieved, for example.<br /><br />
+						
+						
+						The output file consists of records and each record consists of a different number of entries. For example, one might start a new record for each object that needs to be serialized and write each field of the object to the file.<br /><br />
+						
+
+						The writer is used to write data to a file.<br /><br />
+						
+						After creating an instance of the writer, one must open it providing a desired storage file path and file header string which is stored at the beginning of the file, indicating the file type - something like the MZ magic word in windows PE(.exe) files.
+						The writer also can be closed, in order to be disposed of, instead of waiting to be automatically garbage collected.<br /><br />
+						
+						After the writer has been opened one can use "StoreEmpty", "StoreBoolean", "StoreInt16", "StoreByte" and "StoreString" to write data to the file and "NewRecord" to start next record.<br /><br />
+
+
+						The reader is used to read data from a file, previously created with the writer.<br /><br />
+						
+						After creating an instance of the reader, one must open it providing a desired storage file path or a BinaryReader from that file. The reader also can be closed, in order to be disposed of, instead of waiting to be automatically garbage collected. <br /><br />
+						
+						After the reader has been opened one can use "RetrieveEntry", "RetrieveString", "RetrieveInt16", "RetrieveBoolean" and "RetrieveByte" to get data, or "GetNextRecord" to jump to the next record.<br /><br />
+	<br /><br /></div><br />
+	
+	<!-- Point text -->
+	<a href=#! class="comment" onclick="spoiler('arsHmxSeaMtP')" style="margin-left : 30px;">6. Credits</a>
+	<div class="comment" id="arsHmxSeaMtP" style="margin-left : 60px; margin-right : 150px; display:none;">
+		<br />
+
+				Special credits to users Sentry and Rotem on stackoverflow.com for explaining the bitwise operations and casting to byte.
+	<br /><br /><br /><br /><br /></div><br />
+	
+	<!-- Point text -->
+	<a href=#! class="comment" onclick="spoiler('MEhX4K76q4qX')" style="margin-left : 30px;">7. Point Map</a>
+	<div class="comment" id="MEhX4K76q4qX" style="margin-left : 60px; margin-right : 150px">
+		<br />
+
+
+			<hr />
+			<table style="width:100%; background-color : lime; margin:0; padding:0; color : #000000; font: bold italic 10px Georgia, serif;">
+    
+	
+			<!-- rows -->
+			
+			
+			
+			<tr>
+				<td style="width:50%">IOException : Exception</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			
+			
+			
+			<tr>
+				<td style="width:50%">EntryType : byte</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Empty</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.UInt16</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.String</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Boolean</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Byte</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Error</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			
+			
+			<tr>
+				<td style="width:50%">Entry</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.EntryType</td>
+				<td style="width:50%;">Type</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.object</td>
+				<td style="width:50%;">Value</td> 
+			</tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.()</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.(EntryType, object)</td>
+				<td style="width:50%;">type, value
+				<span style="margin-right : 200px; color : #cccccc; font: italic 12px Georgia, serif;">&emsp;&emsp;&emsp;</span></td> 
+			</tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+
+			
+			<tr>
+				<td style="width:50%">EntryList</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.[int]&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;-&gt; Entry</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Add(Entry)&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&emsp;&emsp;&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;-&gt; int</td>
+				<td style="width:50%;">value</td> 
+			</tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+
+			
+			<tr>
+				<td style="width:50%">Reader</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.bool</td>
+				<td style="width:50%;">RecordComplete</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.string</td>
+				<td style="width:50%;">Header</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.int</td>
+				<td style="width:50%;">EntryCount</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.bool</td>
+				<td style="width:50%;">EndOfFile</td> 
+			</tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			
+			<tr>
+				<td style="width:50%; color : #0000ff;">&emsp;&emsp;&emsp;_BinaryReader</td>
+				<td style="width:50%; color : #0000ff;">_Reader</td> 
+			</tr>
+						<tr>
+				<td style="width:50%; color : #0000ff">&emsp;&emsp;&emsp;_int</td>
+				<td style="width:50%; color : #0000ff;">_EntryCount</td> 
+			</tr>
+						<tr>
+				<td style="width:50%; color : #0000ff">&emsp;&emsp;&emsp;_int</td>
+				<td style="width:50%; color : #0000ff;">_EntriesRead</td> 
+			</tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Open(string)</td>
+				<td style="width:50%;">path</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Open(BinaryReader)</td>
+				<td style="width:50%;">reader</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Close()</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+						<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.GetNextRecord()
+				&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;-&gt; bool</td>
+				<td style="width:50%;"></td> 
+			</tr>
+						<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.RetrieveEntry()
+				&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;&nbsp;&nbsp;-&gt; Entry</td>
+				<td style="width:50%;"></td> 
+			</tr>
+						<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.RetrieveString()
+				&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;&nbsp;-&gt; string</td>
+				<td style="width:50%;"></td> 
+			</tr>
+						<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.RetrieveInt16()
+				&emsp;&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;-&gt; int</td>
+				<td style="width:50%;"></td> 
+			</tr>
+						<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.RetrieveBoolean()
+				&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;&nbsp;-&gt; bool</td>
+				<td style="width:50%;"></td> 
+			</tr>
+						<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.RetrieveByte()
+				&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;&nbsp;-&gt; byte</td>
+				<td style="width:50%;"></td> 
+			</tr>
+<tr><td style="width:50%">&emsp;</td></tr>
+<tr><td style="width:50%">&emsp;</td></tr>
+
+			<tr>
+				<td style="width:50%">Writer</td>
+				<td style="width:50%;"></td> 
+			</tr>
+						<tr>
+				<td style="width:50%; color : #0000ff;">&emsp;&emsp;&emsp;_FileStream</td>
+				<td style="width:50%; color : #0000ff;">_File</td> 
+			</tr>
+						<tr>
+				<td style="width:50%; color : #0000ff">&emsp;&emsp;&emsp;_BinaryWriter</td>
+				<td style="width:50%; color : #0000ff;">_Writer</td> 
+			</tr>
+						<tr>
+				<td style="width:50%; color : #0000ff">&emsp;&emsp;&emsp;_EntryList</td>
+				<td style="width:50%; color : #0000ff;">_CurrentRecord</td> 
+			</tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Open(string, string)</td>
+				<td style="width:50%;">path, header</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Close()</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+						<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.NewRecord()</td>
+				<td style="width:50%;"></td> 
+			</tr>
+						<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.StoreEmpty()</td>
+				<td style="width:50%;"></td> 
+			</tr>
+									<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.StoreBoolean(bool)</td>
+				<td style="width:50%;">value</td> 
+			</tr>
+												<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.StoreInt16(int)</td>
+				<td style="width:50%;">value</td> 
+			</tr>
+												<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.StoreByte(byte)</td>
+				<td style="width:50%;">value</td> 
+			</tr>
+												<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.StoreString(string)</td>
+				<td style="width:50%;">value</td> 
+			</tr>
+			
+			
+			</table><hr />
+			
+			
+	</div><br />
+	
+	<!-- Point text -->
+	<a href=#! class="comment" onclick="spoiler('MEhX4K76q4qa')" style="margin-left : 30px;">8. Member Map - Reader</a>
+	<div class="comment" id="MEhX4K76q4qa" style="margin-left : 60px; margin-right : 150px; display:none;">
+		<br />
+
+
+			<hr />
+			
+			
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">RecordComplete</span><br />
+				Whether the current record has been completely red, or in other words whether _EntriesRead equals _EntryCount.
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">Header</span><br />
+				The opened file header.
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">EntryCount</span><br />
+				The count of all the entries in the current record.
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">EndOfFile</span><br />
+				Whether the end of file is reached. We get that from the position and length of the "_Reader"'s underlying stream.
+			</div><br />
+			<br /><br /><br /><br />
+			
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">~()</span><br />
+				&emsp;&emsp;&emsp;The destructor calls "Close()".<br />
+				&emsp;&emsp;&emsp;-&gt;Close()
+			</div><br />
+			
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">.Open(string path)</span><br />
+				&emsp;&emsp;&emsp;Try<br />
+				&emsp;&emsp;&emsp;-&gt;BinaryReader(path)<br />
+				&emsp;&emsp;&emsp;-&gt;Open(BinaryReader)<br />
+				&emsp;&emsp;&emsp;Catch
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">.Open(BinaryReader reader)</span><br />
+				&emsp;&emsp;&emsp;Set the "_Reader", reset "_EntryCount" and "_EntriesRead" to "0",<br />&emsp;&emsp;&emsp;retrieve the file header by "RawReadCString()" and set it - "_FileHeader".<br />
+				&emsp;&emsp;&emsp;-&gt;RawReadCString()
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">.Close()</span><br />
+				&emsp;&emsp;&emsp;Close the reader.
+			</div><br /><br /><br />
+			<br /><br />
+			
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">.GetNextRecord()&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;-&gt;bool</span><br />
+				&emsp;&emsp;&emsp;While "_EntryCount" and "_EntriesRead" read an entry.<br />
+				&emsp;&emsp;&emsp;Retrieve ushort. The ushort must be 77, indicating a record.<br />
+				&emsp;&emsp;&emsp;If so, retrieve another ushort which indicates the number of entries.<br />
+				&emsp;&emsp;&emsp;Set "_EntryCount" from that and "_EntriesRead" to 0.<br />
+				&emsp;&emsp;&emsp;Return true.<br />
+				&emsp;&emsp;&emsp;Else, if the flag does not match return false.
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">.RetrieveEntry()&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;-&gt;Entry</span><br />
+				&emsp;&emsp;&emsp;If the record has been completed throw "IOException".<br />
+				&emsp;&emsp;&emsp;Increment "_EntriesRead"<br />
+				&emsp;&emsp;&emsp;Create new entry.<br />
+				&emsp;&emsp;&emsp;-&gt;Entry()<br /><br />
+				
+				&emsp;&emsp;&emsp;Read a byte from the file, and cast it to EntryType. Set entry.Type<br />
+				&emsp;&emsp;&emsp;If Empty (indicated by 69) set the "entry.Value" to empty string.<br /><br />
+				
+				&emsp;&emsp;&emsp;If Byte (98) read a byte and set the "entry.Value"<br />
+				&emsp;&emsp;&emsp;-&gt;_Reader.ReadByte()<br /><br />
+				
+				&emsp;&emsp;&emsp;If Boolean (66) read a byte and set the "entry.Value" to "true" if it is "1", else set it to false.<br />
+				&emsp;&emsp;&emsp;-&gt;_Reader.ReadByte()<br /><br />
+				
+				&emsp;&emsp;&emsp;If UInt16 (73) read ushort and set the "entry.Value"<br />
+				&emsp;&emsp;&emsp;-&gt;RawReadUInt16()<br />
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;read 2 bytes (a and b) and shift b, then add a. (b << 8) + a<br /><br />
+				
+				&emsp;&emsp;&emsp;If String (83) read string and set the "entry.Value"<br />
+				&emsp;&emsp;&emsp;-&gt;RawReadCString()<br />
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Continuously read ushorts, convert them to char using "Utf32" and accumulate those in string variable,<br />&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;until reading "0" - the null terminator. Return the resulting string.<br />
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;-&gt;RawReadUInt16()<br />
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;-&gt;ConvertFromUtf32(x)<br /><br />
+					
+				&emsp;&emsp;&emsp;Else set the entry.Type to Error and the value to an empty string.<br />
+				&emsp;&emsp;&emsp;Return the entry.<br />
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">.RetrieveString()&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;-&gt;string</span><br />
+				&emsp;&emsp;&emsp;Call "RetrieveEntry()" and cast the value if the entry type matches, else throw the "IOException".
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">.RetrieveInt16()&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;-&gt;int</span><br />
+				&emsp;&emsp;&emsp;Call "RetrieveEntry()" and cast the value if the entry type matches, else throw the "IOException".
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">.RetrieveBoolean()&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;-&gt;bool</span><br />
+				&emsp;&emsp;&emsp;Call "RetrieveEntry()" and cast the value if the entry type matches, else throw the "IOException".
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">.RetrieveByte()&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;-&gt;byte</span><br />
+				&emsp;&emsp;&emsp;Call "RetrieveEntry()" and cast the value if the entry type matches, else throw the "IOException".
+			</div><br />
+			
+			
+			<hr />
+			
+			
+	</div><br />
+	
+	<!-- Point text -->
+	<a href=#! class="comment" onclick="spoiler('sEhX4K76q4qa')" style="margin-left : 30px;">9. Member Map - Writer</a>
+	<div class="comment" id="sEhX4K76q4qa" style="margin-left : 60px; margin-right : 150px; display:none;">
+		<br />
+
+
+			<hr />
+			
+			
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">.()</span><br />
+				&emsp;&emsp;&emsp;Initiate "_CurrentRecord"<br />
+				&emsp;&emsp;&emsp;-&gt;EntryList()<br />
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">~()</span><br />
+				&emsp;&emsp;&emsp;The destructor calls "Close()".<br />
+				&emsp;&emsp;&emsp;-&gt;Close()
+			</div><br /><br /><br /><br />
+			
+			
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">.Open(string path, string header)</span><br />
+				&emsp;&emsp;&emsp;Try<br />
+				&emsp;&emsp;&emsp;Open FileStream and store it in "_File".<br />
+				&emsp;&emsp;&emsp;Open BinaryWriter and store it in "_Writer".<br />
+				&emsp;&emsp;&emsp;Write the file header to the file.<br />
+				&emsp;&emsp;&emsp;-&gt;FileStream(path, FileMode.Create)<br />
+				&emsp;&emsp;&emsp;-&gt;BinaryWriter(_File)<br />
+				&emsp;&emsp;&emsp;-&gt;RawWriteCString(header)<br />
+				<br />
+				&emsp;&emsp;&emsp;Catch<br />
+				&emsp;&emsp;&emsp;Throw "IOException"
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">.Close()</span><br />
+				&emsp;&emsp;&emsp;Write all the accumulated entries to the file in the form of a record.<br />
+				&emsp;&emsp;&emsp;In order to avoid too much IO operations (or at least this is the logical reason),<br />&emsp;&emsp;&emsp;when storing a value it is written to the "EntryList _CurrentRecord"<br />&emsp;&emsp;&emsp;and when "NewRecord()" is called those are written all at once.<br />
+				&emsp;&emsp;&emsp;-&gt;WriteRecord()<br />
+				&emsp;&emsp;&emsp;-&gt;_File.Close()<br />
+			</div><br /><br /><br /><br />
+			
+			
+			
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">.NewRecord()</span><br />
+				&emsp;&emsp;&emsp;In order to avoid too much IO operations (or at least this is the logical reason),
+				<br />&emsp;&emsp;&emsp;when storing a value it is written to the "EntryList _CurrentRecord"<br />&emsp;&emsp;&emsp;and when "NewRecord()" is called those are written all at once.<br />
+				&emsp;&emsp;&emsp;->_WriteRecord()
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">_WriteRecord()</span><br />
+				&emsp;&emsp;&emsp;If there are no entries in "_CurrentRecord" return.<br />
+				&emsp;&emsp;&emsp;Else, for each entry, act according to its type by writing the byte code representing that type, <br />&emsp;&emsp;&emsp;cast its value and write it.Here is how this works:<br />
+				<br />
+				&emsp;&emsp;&emsp;If the "entry.Type" is "Boolean"<br />
+				&emsp;&emsp;&emsp;->RawWriteByte(66)<br />
+				&emsp;&emsp;&emsp;->RawWriteByte(1) or "0" if false<br />
+				<br />
+				&emsp;&emsp;&emsp;Else if the "entry.Type" is "Byte"<br />
+				&emsp;&emsp;&emsp;->RawWriteByte(98)<br />
+				&emsp;&emsp;&emsp;->Convert.ToByte(x)<br />
+				&emsp;&emsp;&emsp;->RawWriteByte(x)<br />
+				<br />
+				&emsp;&emsp;&emsp;Else if the "entry.Type" is "String"<br />
+				&emsp;&emsp;&emsp;->RawWriteByte(83)<br />
+				&emsp;&emsp;&emsp;->Convert.ToString(x)<br />
+				&emsp;&emsp;&emsp;->RawWriteCString(x)<br />
+				&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;For each char of the string - get its charcode and write it as ushort<br />
+				&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;->RawWriteInt16(charcode)<br />
+				<br />
+				&emsp;&emsp;&emsp;Else if the "entry.Type" is "UInt16"<br />
+				&emsp;&emsp;&emsp;->RawWriteByte(73)<br />
+				&emsp;&emsp;&emsp;->Convert.ToInt32(x)<br />
+				&emsp;&emsp;&emsp;->RawWriteInt16(x)<br /><br />
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Get 2 bytes from the ushort "x".<br />
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;This is done by right-shifting the value by 8 for each byte other than the least-significant one,<br />&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;because when casting to byte only the least significant byte is taken and the rest is cut off.<br />&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;The logical and with 255, on the other hand, don't change the value at all but is used to implicitly cast to byte.<br />&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;It is redundant in our case where we use an explicit cast to byte and can be omitted altogether.<br /><br />
+					
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;byte a = (byte)(value & 255);<br />
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;(int)value:&nbsp;&nbsp;1101 0010 0011 1000<br />
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;(int)  255:&nbsp;&nbsp;&nbsp;&nbsp;0000 0000 1111 1111<br />
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;bitwise &:&nbsp;&nbsp;0000 0000 0011 1000<br />
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;to byte:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0011 1000<br /><br />
+					
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;byte b = (byte)(value >> 8 & 255);<br />
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;(int)value:&nbsp;&nbsp;&nbsp;1101 0010 0011 1000<br />
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;>> 8:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0000 0000 1101 0010<br />
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;(int)  255:&nbsp;&nbsp;&nbsp;&nbsp;0000 0000 1111 1111<br />
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;bitwise &:&nbsp;&nbsp;&nbsp;0000 0000 1101 0010<br />
+					&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;to byte:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1101 0010<br />
+				<br />
+				&emsp;&emsp;&emsp;Else, write "69" for empty.<br />
+				&emsp;&emsp;&emsp;->RawWriteByte(69)<br />
+			</div><br /><br /><br />
+			
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">.StoreEmpty()</span><br />
+				&emsp;&emsp;&emsp;Create new entry accordingly and store it in "_CurrentRecord"<br />
+				&emsp;&emsp;&emsp;->Entry(EntryType.Empty, "")
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">.StoreBoolean(bool value)</span><br />
+				&emsp;&emsp;&emsp;Create new entry accordingly and store it in "_CurrentRecord"<br />
+				&emsp;&emsp;&emsp;->Entry(EntryType.Boolean, value)
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">.StoreInt16(int value)</span><br />
+				&emsp;&emsp;&emsp;Create new entry accordingly and store it in "_CurrentRecord"<br />
+				&emsp;&emsp;&emsp;->Entry(EntryType.UInt16, value)
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">.StoreByte(byte value)</span><br />
+				&emsp;&emsp;&emsp;Create new entry accordingly and store it in "_CurrentRecord"<br />
+				&emsp;&emsp;&emsp;->Entry(EntryType.Byte, value)
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">.StoreString(string value)</span><br />
+				&emsp;&emsp;&emsp;Create new entry accordingly and store it in "_CurrentRecord"<br />
+				&emsp;&emsp;&emsp;->Entry(EntryType.String, value)
+			</div><br />
+			
+			
+			
+			
+			<hr />
+			
+			
+	</div><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+<!-- FOOTER -->
+	<br /><br />
+	<h2 style="background-color : lime; "><br />
+	<span style="font: bold italic 14px Georgia, serif; color:gray; margin-left:10px;">Viktor Chernev (vchernev91@abv.bg)</span>
+	<br />
+	<span style="font: bold italic 14px Georgia, serif; color:gray; margin-left:10px;">https://codeprompt.github.io/sequential-byte-serializer/sequential-byte-serializer.htm</span>
+	<br />
+	<span style="font: bold italic 14px Georgia, serif; color:gray; margin-left:10px; font-size: 12px;">24 Jun 2018</span></h2>
+
+</body>
+</html>

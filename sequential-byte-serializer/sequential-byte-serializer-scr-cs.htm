@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+	
+	<title>Sequential-byte serializer</title>
+	<script type="text/javascript">
+		function spoiler(id)
+		{
+			if(document.getElementById(id).style.display=='none') 
+				document.getElementById(id).style.display='';
+			else document.getElementById(id).style.display='none';
+		}
+		
+		function toclipboard() 
+		{
+			var copyText = document.getElementById("code").innerHTML;
+			copyStringToClipboard(copyText);
+		}
+		function copyStringToClipboard(str) 
+		{
+		   // Create new element
+		   var el = document.createElement('textarea');
+		   // Set value (string to be copied)
+		   el.value = str;
+		   // Set non-editable to avoid focus and move outside of view
+		   el.setAttribute('readonly', '');
+		   el.style = {position: 'absolute', left: '-9999px'};
+		   document.body.appendChild(el);
+		   // Select text inside element
+		   el.select();
+		   // Copy text to clipboard
+		   document.execCommand('copy');
+		   // Remove temporary element
+		   document.body.removeChild(el);
+		}
+	</script>
+	<style>
+		a, a:link, a:visited, a:hover, a:active, div.comment
+		{
+			color : #33cc33; 
+			font: italic 14px Georgia, serif;
+		}
+		
+		/* buttons */
+		section.press button 
+		{
+		  color: #fff;
+		  background-color: #6496c8;
+		  border: none;
+		  border-radius: 15px;
+		  box-shadow: 0 10px #27496d;
+		}
+		section.press button:hover,
+		section.press button.hover 
+		{
+		  background-color: #417cb8
+		}
+		section.press button:active,
+		section.press button.active 
+		{
+		  background-color: #417cb8;
+		  box-shadow: 0 5px #27496d;
+		  transform: translateY(5px);
+		}
+
+	</style>
+</head>
+
+<body style="margin-left : 20px; font-size: 14px;">
+
+<!-- TITLE -->
+	<section class="press">
+		<button class="press" onclick="toclipboard();" style="position: absolute; right: 67px; top: 26px; height: 34px; width: 40px;">copy</button>
+		<form method="get" action="sequential-byte-serializer.cs">
+					<button class="press" style="position: absolute; right: 25px; top: 26px; height: 34px; width: 40px;">save</button>
+		</form>
+		<form method="get" action="sequential-byte-serializer-scr-cs.htm">
+					<button class="press" style="position: absolute; right: 25px; top: 72px; height: 34px; width: 40px;">C#</button>
+		</form>
+	</section>
+
+	<pre id="code">using System;
+using System.Collections;
+using System.IO;
+
+namespace codeprompt.github.io
+{
+    public sealed class SimpleDB
+    {
+        /// &lt;summary>
+        /// Exception class for the system.
+        /// &lt;/summary>
+        public class IOException : Exception
+        {
+            public IOException(string Message) : base(Message)
+            {
+            }
+            public IOException(string Message, Exception Inner) : base(Message, Inner)
+            {
+            }
+            public IOException(EntryType Type, BinaryReader Reader) : base("Type mismatch in file. Read '" + char.ConvertFromUtf32((int)Type).ToString() + "' at " + Reader.BaseStream.Position.ToString())
+            {
+            }
+        }
+
+        /// &lt;summary>
+        /// The type of entry.
+        /// &lt;/summary>
+        public enum EntryType : byte
+        {
+            Empty = 69,
+            UInt16 = 73,
+            String = 83,
+            Boolean = 66,
+            Byte = 98,
+            Error = 0
+        }
+
+        /// &lt;summary>
+        /// An entry. The file consists of records, 
+        /// each of which consist of entries.
+        /// &lt;/summary>
+        public class Entry
+        {
+            public EntryType Type;
+            public object Value;
+
+            public Entry()
+            {
+                Type = EntryType.Empty;
+                Value = "";
+            }
+            public Entry(EntryType type, object value)
+            {
+                Type = type;
+                Value = value;
+            }
+        }
+
+        /// &lt;summary>
+        /// List of entries.
+        /// &lt;/summary>
+        public class EntryList : ArrayList
+        {
+            public new Entry this[int index]
+            {
+                get
+                {
+                    return (Entry)base[index];
+                }
+                set
+                {
+                    base[index] = value;
+                }
+            }
+
+            public EntryList()
+            {
+            }
+
+            public int Add(Entry value)
+            {
+                return base.Add(value);
+            }
+        }
+
+        /// &lt;summary>
+        /// Use to read from file.
+        /// &lt;/summary>
+        public class Reader
+        {
+            const byte kRecordContentMulti = 77;
+
+            BinaryReader _Reader;
+            string _FileHeader;
+            int _EntryCount;
+            int _EntriesRead;
+
+
+            public Reader()
+            {
+            }
+            ~Reader()
+            {
+                Close();
+            }
+
+
+
+            /// &lt;summary>
+            /// Wether all the Entries have been red.
+            /// &lt;/summary>
+            public bool RecordComplete
+            {
+                get
+                {
+                    return _EntriesRead >= _EntryCount;
+                }
+            }
+
+            /// &lt;summary>
+            /// The opened file header.
+            /// &lt;/summary>
+            /// &lt;returns>The header string.&lt;/returns>
+            public string Header
+            {
+                get
+                {
+                    return _FileHeader;
+                }
+            }
+
+            /// &lt;summary>
+            /// The count of all the entries in the current record.
+            /// &lt;/summary>
+            public int EntryCount
+            {
+                get
+                {
+                    return _EntryCount;
+                }
+            }
+
+            /// &lt;summary>
+            /// Wether the end of file is reached.
+            /// &lt;/summary>
+            public bool EndOfFile
+            {
+                get
+                {
+                    return _Reader.BaseStream.Position == _Reader.BaseStream.Length;
+                }
+            }
+
+
+
+
+            /// &lt;summary>
+            /// Set underlying file to read from, from a given path.
+            /// &lt;/summary>
+            /// &lt;param name="path">The file-path.&lt;/param>
+            public void Open(string path)
+            {
+                try
+                {
+                    Open(new BinaryReader(File.Open(path, FileMode.Open, FileAccess.Read)));
+                }
+                catch { }
+            }
+
+            /// &lt;summary>
+            /// Set underlying file to read from, from a given 'BinaryReader'.
+            /// &lt;/summary>
+            /// &lt;param name="reader">A 'BinaryReader' created from the desired path.&lt;/param>
+            public void Open(BinaryReader reader)
+            {
+                _Reader = reader;
+                _EntryCount = 0;
+                _EntriesRead = 0;
+                _FileHeader = RawReadCString();
+				GetNextRecord();
+            }
+
+            /// &lt;summary>
+            /// Close the underlying 'BinaryReader'.
+            /// &lt;/summary>
+            public void Close()
+            {
+                if (_Reader != null)
+                {
+                    _Reader.Close();
+                    _Reader = null;
+                }
+            }
+
+
+            /// &lt;summary>
+            /// Read an entry.
+            /// &lt;/summary>
+            /// &lt;returns>The retrieved entry.&lt;/returns>
+            public Entry RetrieveEntry()
+            {
+                Entry entry = new Entry();
+                if (RecordComplete)
+                {
+                    throw new IOException("Read past end of record at " + _Reader.BaseStream.Position.ToString());
+                }
+
+                _EntriesRead++;
+                byte b = _Reader.ReadByte();
+                entry.Type = (EntryType)b;
+				
+                if (b == 69)                                   //Empty
+                {
+                    entry.Value = "";
+                }
+                else if (b == 66)                              //Boolean
+                {
+                    byte b3 = _Reader.ReadByte();
+                    entry.Value = (b3 == 1);
+                }
+                else if (b == 73)                              //UInt16
+                {
+                    entry.Value = RawReadUInt16();
+                }
+                else if (b == 83)                              //String
+                {
+                    entry.Value = RawReadCString();
+                }
+                else if (b == 98)                              //Byte
+                {
+                    entry.Value = _Reader.ReadByte();
+                }
+                else
+                {
+                    entry.Type = EntryType.Error;
+                    entry.Value = "";
+                }
+
+                return entry;
+            }
+
+            /// &lt;summary>
+            /// Try to retrieve an entry of string type and cast it '.ToString()' or
+            /// throw 'IOException' if not possible.
+            /// &lt;/summary>
+            /// &lt;returns>The entry string.&lt;/returns>
+            public string RetrieveString()
+            {
+                Entry entry = RetrieveEntry();
+
+                if (entry.Type == EntryType.String)
+                {
+                    return entry.Value.ToString();
+                }
+                throw new IOException(entry.Type, _Reader);
+            }
+
+            /// &lt;summary>
+            /// Try to retrieve an entry of UInt16 type and cast it to 'Int32' or
+            /// throw 'IOException' if not possible.
+            /// &lt;/summary>
+            /// &lt;returns>The int entry.&lt;/returns>
+            public int RetrieveInt16()
+            {
+                Entry entry = this.RetrieveEntry();
+                if (entry.Type == EntryType.UInt16)
+                {
+                    return Convert.ToInt32(entry.Value);
+                }
+                throw new IOException(entry.Type, _Reader);
+            }
+
+            /// &lt;summary>
+            /// Try to retrieve an entry of Boolean type and cast it to 'bool' or
+            /// throw 'IOException' if not possible.
+            /// &lt;/summary>
+            /// &lt;returns>The bool entry.&lt;/returns>
+            public bool RetrieveBoolean()
+            {
+                Entry entry = RetrieveEntry();
+                if (entry.Type == EntryType.Boolean)
+                {
+                    return Convert.ToBoolean(entry.Value);
+                }
+                throw new IOException(entry.Type, _Reader);
+            }
+
+            /// &lt;summary>
+            /// Try to retrieve an entry of Boolean type and cast it to 'byte' or
+            /// throw 'IOException' if not possible.
+            /// &lt;/summary>
+            /// &lt;returns>The byte entry.&lt;/returns>
+            public byte RetrieveByte()
+            {
+                Entry entry = RetrieveEntry();
+                if (entry.Type == EntryType.Byte)
+                {
+                    return Convert.ToByte(entry.Value);
+                }
+                throw new IOException(entry.Type, _Reader);
+            }
+
+            /// &lt;summary>
+            /// Read until the end of the current record and get next byte,
+            /// which should be the constant 'kRecordContentMulti' or 77.
+            /// &lt;/summary>
+            /// &lt;returns>True is successfull.&lt;/returns>
+            public bool GetNextRecord()
+            {
+                while (_EntriesRead < _EntryCount)
+                {
+                    RetrieveEntry();
+                }
+                byte b = _Reader.ReadByte();
+
+                if (b == 77)                                    //kRecordContentMulti
+                {
+                    _EntryCount = RawReadUInt16();
+                    _EntriesRead = 0;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+
+
+
+            /// &lt;summary>
+            /// Read 2 bytes and return those as ushort.
+            /// &lt;/summary>
+            /// &lt;returns>&lt;/returns>
+            ushort RawReadUInt16()
+            {
+                int num = _Reader.ReadByte();
+                int num2 = _Reader.ReadByte();
+                return (ushort)((num2 << 8) + num);
+            }
+
+            /// &lt;summary>
+            /// Read a null terminated string.
+            /// &lt;/summary>
+            string RawReadCString()
+            {
+                string text = "";
+                bool flag = false;
+                while (!flag)
+                {
+                    ushort num = RawReadUInt16();
+                    if (num == 0)
+                    {
+                        flag = true;
+                    }
+                    else
+                    {
+                        text += Convert.ToString(char.ConvertFromUtf32(num));
+                    }
+                }
+                return text;
+            }
+        }
+
+        /// &lt;summary>
+        /// Used to write to file.
+        /// &lt;/summary>
+        public class Writer
+        {
+            FileStream _File;
+            BinaryWriter _Writer;
+            EntryList _CurrentRecord;
+
+
+            /// &lt;summary>
+            /// Ctor.
+            /// &lt;/summary>
+            public Writer()
+            {
+                _CurrentRecord = new EntryList();
+            }
+            ~Writer()
+            {
+                Close();
+            }
+
+
+            /// &lt;summary>
+            /// Close the writer.
+            /// &lt;/summary>
+            public void Close()
+            {
+                WriteRecord();
+                _File.Close();
+            }
+
+            /// &lt;summary>
+            /// Create file to write to and open the writer.
+            /// &lt;/summary>
+            /// &lt;param name="path">&lt;/param>
+            /// &lt;param name="header">&lt;/param>
+            public void Open(string path, string header)
+            {
+                try
+                {
+                    _File = new FileStream(path, FileMode.Create);
+                    _Writer = new BinaryWriter(_File);
+                    RawWriteCString(header);
+                }
+                catch (Exception ex)
+                {
+                    throw new IOException("Could not open file", ex);
+                }
+            }
+
+
+            /// &lt;summary>
+            /// Add new Entry of "EntryType.Empty" to the current record.
+            /// &lt;/summary>
+            public void StoreEmpty()
+            {
+                _CurrentRecord.Add(new Entry(EntryType.Empty, ""));
+            }
+
+            /// &lt;summary>
+            /// Add new Entry of "EntryType.Boolean" to the current record.
+            /// &lt;/summary>
+            /// &lt;param name="value">The entry value.&lt;/param>
+            public void StoreBoolean(bool value)
+            {
+                _CurrentRecord.Add(new Entry(EntryType.Boolean, value));
+            }
+
+            /// &lt;summary>
+            /// Add new Entry of "EntryType.UInt16" to the current record.
+            /// &lt;/summary>
+            /// &lt;param name="value">The entry value.&lt;/param>
+            public void StoreInt16(int value)
+            {
+                _CurrentRecord.Add(new Entry(EntryType.UInt16, value));
+            }
+
+            /// &lt;summary>
+            /// Add new Entry of "EntryType.Byte" to the current record.
+            /// &lt;/summary>
+            /// &lt;param name="value">The entry value.&lt;/param>
+            public void StoreByte(byte value)
+            {
+                _CurrentRecord.Add(new Entry(EntryType.Byte, value));
+            }
+
+            /// &lt;summary>
+            /// Add new Entry of "EntryType.String" to the current record.
+            /// &lt;/summary>
+            /// &lt;param name="value">The entry value.&lt;/param>
+            public void StoreString(string value)
+            {
+                _CurrentRecord.Add(new Entry(EntryType.String, value));
+            }
+
+            void RawWriteCString(string text)
+            {
+                for(int i = 0; i < text.Length; i++)
+                {
+                    RawWriteInt16(text[i]);
+                }
+                RawWriteInt16(0);
+            }
+            void RawWriteInt16(int value)
+            {
+                byte a = (byte)(value & 255);
+                byte b = (byte)(value >> 8 & 255);
+                _Writer.Write(a);
+                _Writer.Write(b);
+            }
+            void RawWriteInt32(int value)
+            {
+                byte a = (byte)(value & 255);
+                byte b = (byte)(value >> 8 & 255);
+                b = (byte)(value >> 16 & 255);
+                b = (byte)(value >> 24 & 255);
+                _Writer.Write(a);
+                _Writer.Write(b);
+                _Writer.Write(new byte());
+                _Writer.Write(new byte());
+            }
+            void RawWriteByte(byte value)
+            {
+                _Writer.Write(value);
+            }
+
+            /// &lt;summary>
+            /// Start new record, by writing all the entries
+            /// of the current record to the file.
+            /// &lt;/summary>
+            public void NewRecord()
+            {
+                WriteRecord();
+            }
+            void WriteRecord()
+            {
+                if (_CurrentRecord.Count >= 1)
+                {
+                    RawWriteByte(77);
+                    RawWriteInt16(_CurrentRecord.Count);
+
+                    for(int i = 0; i < _CurrentRecord.Count; i++)
+                    {
+                        Entry entry = _CurrentRecord[i];
+                        EntryType type = entry.Type;
+                        if (type == EntryType.Boolean)
+                        {
+                            RawWriteByte(66);
+                            RawWriteByte(Convert.ToByte(Convert.ToBoolean(entry.Value) ? 1 : 0));
+                        }
+                        else if (type == EntryType.Byte)
+                        {
+                            RawWriteByte(98);
+                            RawWriteByte(Convert.ToByte(entry.Value));
+                        }
+                        else if (type == EntryType.String)
+                        {
+                            RawWriteByte(83);
+                            string value = Convert.ToString(entry.Value);
+                            RawWriteCString(value);
+                        }
+                        else if (type == EntryType.UInt16)
+                        {
+                            RawWriteByte(73);
+                            RawWriteInt16(Convert.ToInt32(entry.Value));
+                        }
+                        else
+                        {
+                            RawWriteByte(69);
+                        }
+                    }
+                    _CurrentRecord.Clear();
+                }
+            }
+        }
+    }
+}</pre>
+
+<!-- BODY -->
+
+
+</body>
+</html>
