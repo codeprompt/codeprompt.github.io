@@ -14,7 +14,14 @@
 
   gtag('config', 'UA-121424235-1');
 </script>
-
+<script type="text/javascript">
+		function spoiler(id)
+		{
+			if(document.getElementById(id).style.display=='none') 
+				document.getElementById(id).style.display='';
+			else document.getElementById(id).style.display='none';
+		}
+	</script>
 
     <title>Codeprompt</title>
   </head>
@@ -28,9 +35,8 @@
     <ul>
       
        <li><a href="sequential-byte-serializer/sequential-byte-serializer.htm">Sequential-byte serializer</a></li>
-      
-       <li>samples-batch
-        <ul>
+       <li onclick="spoiler('shower');">samples-batch
+        <div id="shower" style="display:none;"><ul>
           <li><a href="samples-batch/AesDecode.htm">AesDecode</a></li>
           <li><a href="samples-batch/AesEncode.htm">AesEncode</a></li>
           <li><a href="samples-batch/Base64Decode.htm">Base64Decode</a></li>
@@ -57,8 +63,44 @@
           <li><a href="samples-batch/Input.htm">Input</a></li>
           <li><a href="samples-batch/InputBox.htm">InputBox</a></li>
           <li><a href="samples-batch/Is64Bit.htm">Is64Bit</a></li>
+          <li><a href="samples-batch/Left.htm">Left</a></li>
+          <li><a href="samples-batch/ListIncludedFiles.htm">ListIncludedFiles</a></li>
+          <li><a href="samples-batch/LowerCase.htm">LowerCase</a></li>
+          <li><a href="samples-batch/MakeAdmin.htm">MakeAdmin</a></li>
+          <li><a href="samples-batch/MakeShortcut.htm">MakeShortcut</a></li>
+          <li><a href="samples-batch/MakeToolWindow.htm">MakeToolWindow</a></li>
+          <li><a href="samples-batch/MaskedInput.htm">MaskedInput</a></li>
+          <li><a href="samples-batch/MaskedInputBox.htm">MaskedInputBox</a></li>
+          <li><a href="samples-batch/MaximizeWindow.htm">MaximizeWindow</a></li>
+          <li><a href="samples-batch/MD5.htm">MD5</a></li>
+          <li><a href="samples-batch/Messagebox.htm">Messagebox</a></li>
+          <li><a href="samples-batch/Messagebox_Cancel_TryAgain.htm">Messagebox Cancel TryAgain</a></li>
+          <li><a href="samples-batch/Messagebox_Cancel_TryAgain_Continue.htm">Messagebox Cancel TryAgain Continue</a></li>
+          <li><a href="samples-batch/Messagebox_Cancel_TryAgain_Ignore.htm">Messagebox Cancel TryAgain Ignore</a></li>
+          <li><a href="samples-batch/Messagebox_Error.htm">Messagebox Error</a></li>
+          <li><a href="samples-batch/Messagebox_OK_Cancel.htm">Messagebox OK Cancel</a></li>
+          <li><a href="samples-batch/Messagebox_Yes_No.htm">Messagebox Yes No</a></li>
+          <li><a href="samples-batch/MessageboxCheck.htm">MessageboxCheck</a></li>
+          <li><a href="samples-batch/MessageboxCheck_Yes_No.htm">MessageboxCheck Yes No</a></li>
+          <li><a href="samples-batch/MinimizeWindow.htm">MinimizeWindow</a></li>
+          <li><a href="samples-batch/RC4.htm">RC4</a></li>
+          <li><a href="samples-batch/Right.htm">Right</a></li>
+          <li><a href="samples-batch/SaveFileDialog.htm">SaveFileDialog</a></li>
+          <li><a href="samples-batch/Screenshot.htm">Screenshot</a></li>
+          <li><a href="samples-batch/SetForegroundWindow.htm">SetForegroundWindow</a></li>
+          <li><a href="samples-batch/SHA1.htm">SHA1</a></li>
+          <li><a href="samples-batch/ShowWindow.htm">ShowWindow</a></li>
+          <li><a href="samples-batch/Speak.htm">Speak</a></li>
+          <li><a href="samples-batch/Strlen.htm">Strlen</a></li>
+          <li><a href="samples-batch/StrPos.htm">StrPos</a></li>
+          <li><a href="samples-batch/StrReplace.htm">StrReplace</a></li>
+          <li><a href="samples-batch/StrRev.htm">StrRev</a></li>
+          <li><a href="samples-batch/TransparentConsole.htm">TransparentConsole</a></li>
+          <li><a href="samples-batch/Unzip.htm">Unzip</a></li>
+          <li><a href="samples-batch/UpperCase.htm">UpperCase</a></li>
+          <li><a href="samples-batch/Zip.htm">Zip</a></li>
           
-        </ul>
+          </ul></div>
       </li>
       
     </ul>
