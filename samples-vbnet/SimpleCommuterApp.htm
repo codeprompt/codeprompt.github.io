@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-121424235-1"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+
+	  gtag('config', 'UA-121424235-1');
+	</script>
+
+	
+	<title>SimpleCommuterApp</title>
+	<script type="text/javascript">
+		function spoiler(id)
+		{
+			if(document.getElementById(id).style.display=='none') 
+				document.getElementById(id).style.display='';
+			else document.getElementById(id).style.display='none';
+		}
+		
+		function toclipboard() 
+		{
+			var copyText = document.getElementById("code").innerHTML;
+			copyStringToClipboard(copyText);
+		}
+		function copyStringToClipboard(str) 
+		{
+		   // Create new element
+		   var el = document.createElement('textarea');
+		   // Set value (string to be copied)
+		   el.value = str;
+		   // Set non-editable to avoid focus and move outside of view
+		   el.setAttribute('readonly', '');
+		   el.style = {position: 'absolute', left: '-9999px'};
+		   document.body.appendChild(el);
+		   // Select text inside element
+		   el.select();
+		   // Copy text to clipboard
+		   document.execCommand('copy');
+		   // Remove temporary element
+		   document.body.removeChild(el);
+		}
+	</script>
+	<style>
+		a, a:link, a:visited, a:hover, a:active, div.comment
+		{
+			color : #33cc33; 
+			font: italic 14px Georgia, serif;
+		}
+		
+		/* buttons */
+		section.press button 
+		{
+		  color: #fff;
+		  background-color: #6496c8;
+		  border: none;
+		  border-radius: 15px;
+		  box-shadow: 0 10px #27496d;
+		}
+		section.press button:hover,
+		section.press button.hover 
+		{
+		  background-color: #417cb8
+		}
+		section.press button:active,
+		section.press button.active 
+		{
+		  background-color: #417cb8;
+		  box-shadow: 0 5px #27496d;
+		  transform: translateY(5px);
+		}
+
+	</style>
+</head>
+
+<body style="margin-left : 20px; font-size: 14px;">
+
+<!-- TITLE -->
+	<section class="press">
+		<button class="press" onclick="toclipboard();" style="position: absolute; right: 67px; top: 26px; height: 34px; width: 40px;">copy</button>
+		<form method="get" action="SimpleCommuterApp.vb">
+					<button class="press" style="position: absolute; right: 25px; top: 26px; height: 34px; width: 40px;">save</button>
+		</form>
+		<form method="get" action="SimpleCommuterApp.htm">
+					<button class="press" style="position: absolute; right: 25px; top: 72px; height: 34px; width: 40px;">VB</button>
+		</form>
+	</section>
+
+	<pre id="code">Public Class Form1
+	Private Sub btnAdd_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnAdd.Click
+		Dim decPrce As Decimal = 0
+		If cbxChoice.SelectedIndex = 1 Then 
+			decPrce = CalcCar()
+		Else 
+			decPrce = CalcTrain()
+		Else 
+			decPrce = CalcBus()
+		End If
+		If decPrce = 0 Then 
+			Return 
+		End If
+		lblResult.Text = decPrce.ToString("C")
+	End Sub
+	
+	Private Function ValidateData(ByVal strInput As String)
+		If Not IsNumeric(strInput) 
+			Return 0
+		End If 
+		Try
+			intX = Convert.ToInt32(strInput)
+			Return intX
+		Catch ex As InvalidCastException
+			MessageBox.Show("Please, enter valid value")
+			Return 0
+		End Try
+	End Function
+	
+
+	Private Function CalcCar()
+		Dim decCarDailyDistance As Decimal = ValidateData(tbxCarDailyDistance.Text)
+		If decCarDailyDistance = 0 Then
+			Return 0
+		End If
+		Dim decCarWorkdaysPerMonth As Decimal = ValidateData(tbxCarWorkdaysPerMonth.Text)
+		If decCarWorkdaysPerMonth = 0 Then
+			Return 0
+		End If
+		Dim decCarMilPerGalon As Decimal = ValidateData(tbxCarMilPerGalon.Text)
+		If decCarMilPerGalon = 0 Then
+			Return 0
+		End If
+		Dim decCarCostPerGalon As Decimal = ValidateData(tbxCarCostPerGalon.Text)
+		If decCarCostPerGalon = 0 Then
+			Return 0
+		End If
+		Return ((decCarDailyDistance / decCarMilPerGalon) * decCarCostPerGalon) * decCarWorkdaysPerMonth
+	End Function
+	Private Function CalcTrain()
+		Dim decTrainCost As Decimal = ValidateData(tbxTrainCost.Text)
+		If decTrainCost = 0 Then
+			Return 0
+		End If
+		Dim decTraindays As Decimal = ValidateData(tbxTraindays.Text)
+		If decTraindays = 0 Then
+			Return 0
+		End If
+		Return decTrainCost * decWorkdays
+	End Function
+	Private Function CalcBus()
+		Dim decBusCost As Decimal = ValidateData(tbxBusCost.Text)
+		If decBusCost = 0 Then
+			Return 0
+		End If
+		Dim decWorkdays As Decimal = ValidateData(tbxWorkdays.Text)
+		If decWorkdays = 0 Then
+			Return 0
+		End If
+		Return decBusCost * decWorkdays
+	End Function
+		
+		
+	Private Sub cbxChoice_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cbxChoice.SelectedIndexChanged
+		If cbxChoice.SelectedIndex = 0 Then
+				pnlCarQuestions.Visible = False
+				pnlTrainQuestions.Visible = False
+				pnlBusQuestions.Visible = False
+				btnAdd_Click.Visible = True
+		Else If cbxChoice.SelectedIndex = 1 Then
+				pnlCarQuestions.Visible = True
+				pnlTrainQuestions.Visible = False
+				pnlBusQuestions.Visible = False
+				btnAdd_Click.Visible = True
+		Else If cbxChoice.SelectedIndex = 2 Then
+				pnlCarQuestions.Visible = False
+				pnlTrainQuestions.Visible = True
+				pnlBusQuestions.Visible = False
+				btnAdd_Click.Visible = True
+		Else If cbxChoice.SelectedIndex = 3 Then
+				pnlCarQuestions.Visible = False
+				pnlTrainQuestions.Visible = False
+				pnlBusQuestions.Visible = True
+				btnAdd_Click.Visible = True
+		End If
+	End Sub
+
+	Private Sub btnClear_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnClear.Click
+		btnAdd_Click.Visible = False
+		pnlCarQuestions.Visible = False
+		pnlTrainQuestions.Visible = False
+		pnlBusQuestions.Visible = False
+		tbxCarDailyDistance.Text = ""
+		tbxCarWorkdaysPerMonth.Text = ""
+		tbxCarMilPerGalon.Text = ""
+		tbxCarCostPerGalon.Text = ""
+		tbxTrainCost.Text = ""
+		tbxTrainWorkdays.Text = ""
+		tbxBusCost.Text = ""
+		tbxBusWorkdays.Text = ""
+	End Sub
+	Private Sub btnExit_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnExit.Click
+		Application.Exit()
+	End Sub
+End Class</pre>
+
+</body>
+</html>
