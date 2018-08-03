@@ -14,7 +14,15 @@
 
   gtag('config', 'UA-121424235-1');
 </script>
+	  
+
+<script src="particles.js"></script>
 <script type="text/javascript">
+	
+	/* particlesJS.load(@dom-id, @path-json, @callback (optional)); */
+        particlesJS.load('particles-js', 'assets/particles.json'});
+	
+	
 		function spoiler(id)
 		{
 			if(document.getElementById(id).style.display=='none') 
@@ -27,6 +35,8 @@
   </head>
 
   <body>
+	  <div id="particles-js"></div>
+	  
     <pre>
       Welcome to my personal interactive code library.
       Everything is free and licensed under the MIT license, if not explicitly stated otherwise.
