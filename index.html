@@ -1,141 +1,230 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <!--<link rel="stylesheet" media="screen" href="css/style.css">-->
-	  
-<!-- Global site tag (gtag.js) - Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=UA-121424235-1"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Codeprompt</title>
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" media="screen" href="css/style.css">
+  
+  	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-121424235-1"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
 
-  gtag('config', 'UA-121424235-1');
-</script>
-	 
-	 
-      <script type="text/javascript">
+	  gtag('config', 'UA-121424235-1');
+	</script>
 	
-		function spoiler(id)
-		{
-			if(document.getElementById(id).style.display=='none') 
+	<script type="text/javascript">
+	
+		function spoiler(id) {
+			if(document.getElementById(id).style.display=='none')
 				document.getElementById(id).style.display='';
 			else document.getElementById(id).style.display='none';
+			
+			document.getElementById('particles-js').height = 1600;
 		}
+		
 	</script>
+	
+	<style> 
+		.panel {
+			font-family: 'Source Sans Pro';
+			font-size: 1.4em;
+			position: absolute;
+			z-index: 10;
+			width: 430px;
+			height: 150px;
+			color: #fff;
+			top: 5%;
+			left: 10%;
+			margin: 0 0 0 -100px;
+			padding: 20px;
+			border-radius: 4px;
+			box-sizing: border-box;
+			z-index: 100;
+		}
+		a {
+			color: #fff;
+			font-style: italic;
+		}
+		li {
+			font-style: italic;
+		}
+		
+	</style>
+</head>
+<body>
 
-    <title>Codeprompt</title>
-  </head>
-
-  <body>
-<!-- particles.js container -->
-<!-- <div id="particles-js"> -->
-	  
-	     <pre>
-      Welcome to my personal interactive code library.
-      Everything is free and licensed under the MIT license, if not explicitly stated otherwise.
-      Enjoy :)
-    </pre>
-		  
-    <ul>
+	<!-- particles.js container -->
+	<div id="particles-js">
+		<div class="panel" style="display: block;">
+		<pre>
+Welcome to my personal interactive code library.
+Everything is free and licensed under the MIT license, 
+if not explicitly stated otherwise.
+Enjoy :)
+		</pre>
+		<br /><br />
+		
+		    <ul>
       
-       <li><a href="sequential-byte-serializer/sequential-byte-serializer.htm">Sequential-byte serializer</a></li>
-	<li><a href=#! onclick="spoiler('shower');">samples-batch</a></li>
-        <div id="shower" style="display:none;"><ul>
-          <li><a href="samples-batch/AesDecode.htm">AesDecode</a></li>
-          <li><a href="samples-batch/AesEncode.htm">AesEncode</a></li>
-          <li><a href="samples-batch/Base64Decode.htm">Base64Decode</a></li>
-          <li><a href="samples-batch/Base64Encode.htm">Base64Encode</a></li>
-          <li><a href="samples-batch/BrowseForFile.htm">BrowseForFile</a></li>
-          <li><a href="samples-batch/BrowseForFile2.htm">BrowseForFile2</a></li>
-          <li><a href="samples-batch/BrowseForFolder.htm">BrowseForFolder</a></li>
-          <li><a href="samples-batch/ChangeExeIcon.htm">ChangeExeIcon</a></li>
-          <li><a href="samples-batch/CloseWindow.htm">CloseWindow</a></li>
-          <li><a href="samples-batch/CRC32.htm">CRC32</a></li>
-          <li><a href="samples-batch/DisableWindow.htm">DisableWindow</a></li>
-          <li><a href="samples-batch/Download.htm">Download</a></li>
-          <li><a href="samples-batch/Download2.htm">Download2</a></li>
-          <li><a href="samples-batch/EnvironmentVariables.htm">EnvironmentVariables</a></li>
-          <li><a href="samples-batch/FindExecutable.htm">FindExecutable</a></li>
-          <li><a href="samples-batch/FlashWindow.htm">FlashWindow</a></li>
-          <li><a href="samples-batch/GetCPUName.htm">GetCPUName</a></li>
-          <li><a href="samples-batch/GetDesktopResolution.htm">GetDesktopResolution</a></li>
-          <li><a href="samples-batch/GetSystemLanguage.htm">GetSystemLanguage</a></li>
-          <li><a href="samples-batch/GetUserLanguage.htm">GetUserLanguage</a></li>
-          <li><a href="samples-batch/GetUserName.htm">GetUserName</a></li>
-          <li><a href="samples-batch/HideAndShowSelf.htm">HideAndShowSelf</a></li>
-          <li><a href="samples-batch/HideWindow.htm">HideWindow</a></li>
-          <li><a href="samples-batch/Input.htm">Input</a></li>
-          <li><a href="samples-batch/InputBox.htm">InputBox</a></li>
-          <li><a href="samples-batch/Is64Bit.htm">Is64Bit</a></li>
-          <li><a href="samples-batch/Left.htm">Left</a></li>
-          <li><a href="samples-batch/ListIncludedFiles.htm">ListIncludedFiles</a></li>
-          <li><a href="samples-batch/LowerCase.htm">LowerCase</a></li>
-          <li><a href="samples-batch/MakeAdmin.htm">MakeAdmin</a></li>
-          <li><a href="samples-batch/MakeShortcut.htm">MakeShortcut</a></li>
-          <li><a href="samples-batch/MakeToolWindow.htm">MakeToolWindow</a></li>
-          <li><a href="samples-batch/MaskedInput.htm">MaskedInput</a></li>
-          <li><a href="samples-batch/MaskedInputBox.htm">MaskedInputBox</a></li>
-          <li><a href="samples-batch/MaximizeWindow.htm">MaximizeWindow</a></li>
-          <li><a href="samples-batch/MD5.htm">MD5</a></li>
-          <li><a href="samples-batch/Messagebox.htm">Messagebox</a></li>
-          <li><a href="samples-batch/Messagebox_Cancel_TryAgain.htm">Messagebox Cancel TryAgain</a></li>
-          <li><a href="samples-batch/Messagebox_Cancel_TryAgain_Continue.htm">Messagebox Cancel TryAgain Continue</a></li>
-          <li><a href="samples-batch/Messagebox_Cancel_TryAgain_Ignore.htm">Messagebox Cancel TryAgain Ignore</a></li>
-          <li><a href="samples-batch/Messagebox_Error.htm">Messagebox Error</a></li>
-          <li><a href="samples-batch/Messagebox_OK_Cancel.htm">Messagebox OK Cancel</a></li>
-          <li><a href="samples-batch/Messagebox_Yes_No.htm">Messagebox Yes No</a></li>
-          <li><a href="samples-batch/MessageboxCheck.htm">MessageboxCheck</a></li>
-          <li><a href="samples-batch/MessageboxCheck_Yes_No.htm">MessageboxCheck Yes No</a></li>
-          <li><a href="samples-batch/MinimizeWindow.htm">MinimizeWindow</a></li>
-          <li><a href="samples-batch/RC4.htm">RC4</a></li>
-          <li><a href="samples-batch/Right.htm">Right</a></li>
-          <li><a href="samples-batch/SaveFileDialog.htm">SaveFileDialog</a></li>
-          <li><a href="samples-batch/Screenshot.htm">Screenshot</a></li>
-          <li><a href="samples-batch/SetForegroundWindow.htm">SetForegroundWindow</a></li>
-          <li><a href="samples-batch/SHA1.htm">SHA1</a></li>
-          <li><a href="samples-batch/ShowWindow.htm">ShowWindow</a></li>
-          <li><a href="samples-batch/Speak.htm">Speak</a></li>
-          <li><a href="samples-batch/Strlen.htm">Strlen</a></li>
-          <li><a href="samples-batch/StrPos.htm">StrPos</a></li>
-          <li><a href="samples-batch/StrReplace.htm">StrReplace</a></li>
-          <li><a href="samples-batch/StrRev.htm">StrRev</a></li>
-          <li><a href="samples-batch/TransparentConsole.htm">TransparentConsole</a></li>
-          <li><a href="samples-batch/Unzip.htm">Unzip</a></li>
-          <li><a href="samples-batch/UpperCase.htm">UpperCase</a></li>
-          <li><a href="samples-batch/Zip.htm">Zip</a></li>
+		<li><a href="sequential-byte-serializer/sequential-byte-serializer.htm">
+			<img src="img/code-white.png" height=16 width=16 />  Sequential-byte serializer
+		</a></li>
+		<br />
+		
+		<li><a href=#! onclick="spoiler('shower');"><img src="img/folder-white.png" height=16 width=16 />  samples-batch</a></li>
+        <div id="shower" style="padding-left: 15px; display:none;"><br />
+		
+		<table width=100%>
+			<tr>
+				<td><a href="samples-batch/AesDecode.htm"><img src="img/code-white.png" height=16 width=16 />  AesDecode</a></li></td>
+				<td><a href="samples-batch/FindExecutable.htm"><img src="img/code-white.png" height=16 width=16 />  FindExecutable</a></td>
+				<td><a href="samples-batch/LowerCase.htm"><img src="img/code-white.png" height=16 width=16 />  LowerCase</a></td>
+				<td><a href="samples-batch/Messagebox_OK_Cancel.htm"><img src="img/code-white.png" height=16 width=16 />  Messagebox OC</a></td>
+				<td><a href="samples-batch/StrPos.htm"><img src="img/code-white.png" height=16 width=16 />  StrPos</a></td>
+			</tr>
+			<tr>
+				<td><a href="samples-batch/AesEncode.htm"><img src="img/code-white.png" height=16 width=16 />  AesEncode</a></td>
+				<td><a href="samples-batch/FlashWindow.htm"><img src="img/code-white.png" height=16 width=16 />  FlashWindow</a></td>
+				<td><a href="samples-batch/MakeAdmin.htm"><img src="img/code-white.png" height=16 width=16 />  MakeAdmin</a></td>
+				<td><a href="samples-batch/Messagebox_Yes_No.htm"><img src="img/code-white.png" height=16 width=16 />  Messagebox YN</a></td>
+				<td><a href="samples-batch/StrReplace.htm"><img src="img/code-white.png" height=16 width=16 />  StrReplace</a></td>
+			</tr>
+			<tr>
+				<td><a href="samples-batch/Base64Decode.htm"><img src="img/code-white.png" height=16 width=16 />  Base64Decode</a></td>
+				<td><a href="samples-batch/GetCPUName.htm"><img src="img/code-white.png" height=16 width=16 />  GetCPUName</a></td>
+				<td><a href="samples-batch/MakeAdmin.htm"><img src="img/code-white.png" height=16 width=16 />  MakeAdmin</a></td>
+				<td><a href="samples-batch/MessageboxCheck.htm"><img src="img/code-white.png" height=16 width=16 />  MessageboxCheck</a></td>
+				<td><a href="samples-batch/StrRev.htm"><img src="img/code-white.png" height=16 width=16 />  StrRev</a></td>
+			</tr>
+			<tr>
+				<td><a href="samples-batch/Base64Encode.htm"><img src="img/code-white.png" height=16 width=16 />  Base64Encode</a></td>
+				<td><a href="samples-batch/GetDesktopResolution.htm"><img src="img/code-white.png" height=16 width=16 />  GetDesktopResolution</a></td>
+				<td><a href="samples-batch/MakeShortcut.htm"><img src="img/code-white.png" height=16 width=16 />  MakeShortcut</a></td>
+				<td><a href="samples-batch/MessageboxCheck_Yes_No.htm"><img src="img/code-white.png" height=16 width=16 />  MessageboxCheck YN</a></td>
+				<td><a href="samples-batch/TransparentConsole.htm"><img src="img/code-white.png" height=16 width=16 />  TransparentConsole</a></td>
+			</tr>
+			<tr>
+				<td><a href="samples-batch/BrowseForFile.htm"><img src="img/code-white.png" height=16 width=16 />  BrowseForFile</a></td>
+				<td><a href="samples-batch/GetSystemLanguage.htm"><img src="img/code-white.png" height=16 width=16 />  GetSystemLanguage</a></td>
+				<td><a href="samples-batch/MakeToolWindow.htm"><img src="img/code-white.png" height=16 width=16 />  MakeToolWindow</a></td>
+				<td><a href="samples-batch/MinimizeWindow.htm"><img src="img/code-white.png" height=16 width=16 />  MinimizeWindow</a></td>
+				<td><a href="samples-batch/Unzip.htm"><img src="img/code-white.png" height=16 width=16 />  Unzip</a></td>
+			</tr>
+			<tr>
+				<td><a href="samples-batch/BrowseForFile2.htm"><img src="img/code-white.png" height=16 width=16 />  BrowseForFile2</a></td>
+				<td><a href="samples-batch/GetUserLanguage.htm"><img src="img/code-white.png" height=16 width=16 />  GetUserLanguage</a></td>
+				<td><a href="samples-batch/MaskedInput.htm"><img src="img/code-white.png" height=16 width=16 />  MaskedInput</a></td>
+				<td><a href="samples-batch/RC4.htm"><img src="img/code-white.png" height=16 width=16 />  RC4</a></td>
+				<td><a href="samples-batch/UpperCase.htm"><img src="img/code-white.png" height=16 width=16 />  UpperCase</a></td>
+			</tr>
+			<tr>
+				<td><a href="samples-batch/BrowseForFolder.htm"><img src="img/code-white.png" height=16 width=16 />  BrowseForFolder</a></td>
+				<td><a href="samples-batch/GetUserName.htm"><img src="img/code-white.png" height=16 width=16 />  GetUserName</a></td>
+				<td><a href="samples-batch/MaskedInputBox.htm"><img src="img/code-white.png" height=16 width=16 />  MaskedInputBox</a></td>
+				<td><a href="samples-batch/Right.htm"><img src="img/code-white.png" height=16 width=16 />  Right</a></td>
+				<td><a href="samples-batch/Zip.htm"><img src="img/code-white.png" height=16 width=16 />  Zip</a></td>
+			</tr>
+			<tr>
+				<td><a href="samples-batch/ChangeExeIcon.htm"><img src="img/code-white.png" height=16 width=16 />  ChangeExeIcon</a></td>
+				<td><a href="samples-batch/HideAndShowSelf.htm"><img src="img/code-white.png" height=16 width=16 />  HideAndShowSelf</a></td>
+				<td><a href="samples-batch/MaximizeWindow.htm"><img src="img/code-white.png" height=16 width=16 />  MaximizeWindow</a></td>
+				<td><a href="samples-batch/SaveFileDialog.htm"><img src="img/code-white.png" height=16 width=16 />  SaveFileDialog</a></td>
+			</tr>
+			<tr>
+				<td><a href="samples-batch/CloseWindow.htm"><img src="img/code-white.png" height=16 width=16 />  CloseWindow</a></td>
+				<td><a href="samples-batch/HideWindow.htm"><img src="img/code-white.png" height=16 width=16 />  HideWindow</a></td>
+				<td><a href="samples-batch/MD5.htm"><img src="img/code-white.png" height=16 width=16 />  MD5</a></td>
+				<td><a href="samples-batch/Screenshot.htm"><img src="img/code-white.png" height=16 width=16 />  Screenshot</a></td>
+			</tr>
+			<tr>
+				<td><a href="samples-batch/CRC32.htm"><img src="img/code-white.png" height=16 width=16 />  CRC32</a></td>
+				<td><a href="samples-batch/Input.htm"><img src="img/code-white.png" height=16 width=16 />  Input</a></td>
+				<td><a href="samples-batch/Messagebox.htm"><img src="img/code-white.png" height=16 width=16 />  Messagebox</a></td>
+				<td><a href="samples-batch/SetForegroundWindow.htm"><img src="img/code-white.png" height=16 width=16 />  SetForegroundWindow</a></td>
+			</tr>
+			<tr>
+				<td><a href="samples-batch/DisableWindow.htm"><img src="img/code-white.png" height=16 width=16 />  DisableWindow</a></td>
+				<td><a href="samples-batch/InputBox.htm"><img src="img/code-white.png" height=16 width=16 />  InputBox</a></td>
+				<td><a href="samples-batch/Messagebox_Cancel_TryAgain.htm"><img src="img/code-white.png" height=16 width=16 />  Messagebox CT</a></td>
+				<td><a href="samples-batch/SHA1.htm"><img src="img/code-white.png" height=16 width=16 />  SHA1</a></td>
+			</tr>
+			<tr>
+				<td><a href="samples-batch/Download.htm"><img src="img/code-white.png" height=16 width=16 />  Download</a></td>
+				<td><a href="samples-batch/Is64Bit.htm"><img src="img/code-white.png" height=16 width=16 />  Is64Bit</a></td>
+				<td><a href="samples-batch/Messagebox_Cancel_TryAgain_Continue.htm"><img src="img/code-white.png" height=16 width=16 />  Messagebox CTC</a></td>
+				<td><a href="samples-batch/ShowWindow.htm"><img src="img/code-white.png" height=16 width=16 />  ShowWindow</a></td>
+			</tr>
+			<tr>
+				<td><a href="samples-batch/Download2.htm"><img src="img/code-white.png" height=16 width=16 />  Download2</a></td>
+				<td><a href="samples-batch/Left.htm"><img src="img/code-white.png" height=16 width=16 />  Left</a></td>
+				<td><a href="samples-batch/Messagebox_Cancel_TryAgain_Ignore.htm"><img src="img/code-white.png" height=16 width=16 />  Messagebox CTI</a></td>
+				<td><a href="samples-batch/Speak.htm"><img src="img/code-white.png" height=16 width=16 />  Speak</a></td>
+			</tr>
+			<tr>
+				<td><a href="samples-batch/EnvironmentVariables.htm"><img src="img/code-white.png" height=16 width=16 />  EnvironmentVariables</a></td>
+				<td><a href="samples-batch/ListIncludedFiles.htm"><img src="img/code-white.png" height=16 width=16 />  ListIncludedFiles</a></td>
+				<td><a href="samples-batch/Messagebox_Error.htm"><img src="img/code-white.png" height=16 width=16 />  Messagebox Error</a></td>
+				<td><a href="samples-batch/Strlen.htm"><img src="img/code-white.png" height=16 width=16 />  Strlen</a></td>
+			</tr>
+			<tr>
+				<td>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</td>
+				<td>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</td>
+				<td>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</td>
+				<td>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</td>
+				<td>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</td>
+			</tr>
+
+		</table>
+		
+		<br /></div>
+		
+		  
+
+
           
-          </ul></div>
-      <li><a href=#! onclick="spoiler('shower2');">samples-javascript</a></li>
-        <div id="shower2" style="display:none;"><ul>
-          <li><a href="samples-javascript/HelloWorld.htm">HelloWorld</a></li>
-          </ul></div>
+
+          
+          
+          
+          
+		  
+
 	    
-	<li><a href=#! onclick="spoiler('shower3');">samples-vbnet</a></li>
-        <div id="shower3" style="display:none;"><ul>
-          <li><a href="samples-vbnet/SimpleApp.htm">SimpleApp</a></li>
-	  <li><a href="samples-vbnet/SimpleBathtubApp.htm">SimpleBathtubApp</a></li>
-	  <li><a href="samples-vbnet/SimpleBMIApp.htm">SimpleBMIApp</a></li>
-	  <li><a href="samples-vbnet/SimpleBowlingApp.htm">SimpleBowlingApp</a></li>
-	  <li><a href="samples-vbnet/SimpleCarRentalApp.htm">SimpleCarRentalApp</a></li>
-	  <li><a href="samples-vbnet/SimpleComiConApp.htm">SimpleComiConApp</a></li>
-	  <li><a href="samples-vbnet/SimpleCurrencyConverterApp.htm">SimpleCurrencyConverterApp</a></li>
-	  <li><a href="samples-vbnet/SimpleDevConApp.htm">SimpleDevConApp</a></li>
-	  <li><a href="samples-vbnet/SimpleExerciseApp.htm">SimpleExerciseApp</a></li>
-        </ul></div>
+		<li><a href=#! onclick="spoiler('shower3');"><img src="img/folder-white.png" height=16 width=16 />  samples-vbnet</a></li>
+        <div id="shower3" style="padding-left: 15px; display:none;"><br /><ul>
+          <li><a href="samples-vbnet/SimpleApp.htm"><img src="img/code-white.png" height=16 width=16 />  SimpleApp</a></li>
+		  <li><a href="samples-vbnet/SimpleBathtubApp.htm"><img src="img/code-white.png" height=16 width=16 />  SimpleBathtubApp</a></li>
+		  <li><a href="samples-vbnet/SimpleBMIApp.htm"><img src="img/code-white.png" height=16 width=16 />  SimpleBMIApp</a></li>
+		  <li><a href="samples-vbnet/SimpleBowlingApp.htm"><img src="img/code-white.png" height=16 width=16 />  SimpleBowlingApp</a></li>
+		  <li><a href="samples-vbnet/SimpleCarRentalApp.htm"><img src="img/code-white.png" height=16 width=16 />  SimpleCarRentalApp</a></li>
+		  <li><a href="samples-vbnet/SimpleComiConApp.htm"><img src="img/code-white.png" height=16 width=16 />  SimpleComiConApp</a></li>
+		  <li><a href="samples-vbnet/SimpleCurrencyConverterApp.htm"><img src="img/code-white.png" height=16 width=16 />  SimpleCurrencyConverterApp</a></li>
+		  <li><a href="samples-vbnet/SimpleDevConApp.htm"><img src="img/code-white.png" height=16 width=16 />  SimpleDevConApp</a></li>
+		  <li><a href="samples-vbnet/SimpleExerciseApp.htm"><img src="img/code-white.png" height=16 width=16 />  SimpleExerciseApp</a></li>
+        </ul><br /></div>
+		
+		<li><a href=#! onclick="spoiler('shower2');"><img src="img/folder-white.png" height=16 width=16 />  samples-javascript</a></li>
+			<div id="shower2" style="padding-left: 15px; display:none;"><br /><ul>
+				<li><a href="samples-javascript/HelloWorld.htm"><img src="img/code-white.png" height=16 width=16 />  HelloWorld</a></li>
+          </ul><br /></div>
       
     </ul>
 	  
 	  
-	<!--  </div>
+	  
+	  
+		</div>
+	</div>
+	
 
-<!-- scripts -->
-<!-- <script src="particles.js"></script>
-<script src="js/app.js"></script>
-	 --> 
- 
-  </body>
+
+	<script src="particles.js"></script>
+	<script src="js/app.js"></script>
+	
+</body>
 </html>
