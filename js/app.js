@@ -26,7 +26,7 @@ particlesJS('particles-js',
         "value": "#ffffff"
       },
       "shape": {
-        "type": "circle",
+        "type": "dot",
         "stroke": {
           "width": 0,
           "color": "#000000"
@@ -35,7 +35,7 @@ particlesJS('particles-js',
           "nb_sides": 5
         },
         "image": {
-          "src": "img/github.svg",
+          "src": "",
           "width": 100,
           "height": 100
         }
@@ -85,14 +85,14 @@ particlesJS('particles-js',
       "detect_on": "canvas",
       "events": {
         "onhover": {
-          "enable": true,
+          "enable": false,
           "mode": "repulse"
         },
         "onclick": {
-          "enable": true,
-          "mode": "push"
+          "enable": false,
+          "mode": "repulse"
         },
-        "resize": true
+        "resize": false
       },
       "modes": {
         "grab": {
