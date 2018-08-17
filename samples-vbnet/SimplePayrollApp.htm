@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-121424235-1"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+
+	  gtag('config', 'UA-121424235-1');
+	</script>
+
+	
+	<title>SimplePayrollApp</title>
+	<script type="text/javascript">
+		function spoiler(id)
+		{
+			if(document.getElementById(id).style.display=='none') 
+				document.getElementById(id).style.display='';
+			else document.getElementById(id).style.display='none';
+		}
+		
+		function toclipboard() 
+		{
+			var copyText = document.getElementById("code").innerHTML;
+			copyStringToClipboard(copyText);
+		}
+		function copyStringToClipboard(str) 
+		{
+		   // Create new element
+		   var el = document.createElement('textarea');
+		   // Set value (string to be copied)
+		   el.value = str;
+		   // Set non-editable to avoid focus and move outside of view
+		   el.setAttribute('readonly', '');
+		   el.style = {position: 'absolute', left: '-9999px'};
+		   document.body.appendChild(el);
+		   // Select text inside element
+		   el.select();
+		   // Copy text to clipboard
+		   document.execCommand('copy');
+		   // Remove temporary element
+		   document.body.removeChild(el);
+		}
+	</script>
+	<style>
+		a, a:link, a:visited, a:hover, a:active, div.comment
+		{
+			color : #33cc33; 
+			font: italic 14px Georgia, serif;
+		}
+		
+		/* buttons */
+		section.press button 
+		{
+		  color: #fff;
+		  background-color: #6496c8;
+		  border: none;
+		  border-radius: 15px;
+		  box-shadow: 0 10px #27496d;
+		}
+		section.press button:hover,
+		section.press button.hover 
+		{
+		  background-color: #417cb8
+		}
+		section.press button:active,
+		section.press button.active 
+		{
+		  background-color: #417cb8;
+		  box-shadow: 0 5px #27496d;
+		  transform: translateY(5px);
+		}
+
+	</style>
+</head>
+
+<body style="margin-left : 20px; font-size: 14px;">
+
+<!-- TITLE -->
+	<section class="press">
+		<button class="press" onclick="toclipboard();" style="position: absolute; right: 67px; top: 26px; height: 34px; width: 40px;">copy</button>
+		<form method="get" action="SimplePayrollApp.vb">
+					<button class="press" style="position: absolute; right: 25px; top: 26px; height: 34px; width: 40px;">save</button>
+		</form>
+		<form method="get" action="SimplePayrollApp.htm">
+					<button class="press" style="position: absolute; right: 25px; top: 72px; height: 34px; width: 40px;">VB</button>
+		</form>
+	</section>
+
+	<pre id="code">Public Class Form1
+	Const cdecTaxRateSingle As Decimal = 22
+	Const cdecTaxRateFamily As Decimal = 19.8
+	Const cdecMinPayPerHour As Decimal = 7.25
+	Const cdecMaxPayPerHour As Decimal = 40.00
+	Const cintMinWorkHours As Integer = 8
+	Const cintMaxWorkHours As Integer = 60
+	
+	Private Sub btnCalc_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnCalc.Click
+		Dim strName As String
+		Dim intHours As Integer
+		Dim decRate As Decimal
+		Dim decGrossPay As Decimal
+		Dim decTax As Decimal
+		Dim decNetPay As Decimal
+		If tbxName.Text = "" Or IsNumeric(tbxName.Text) Then
+			MessageBox.Show("Please, enter a valid Name", "Error")
+			tbxName.Text = ""
+			Return
+		End If
+		strName = tbxName.Text
+		If Not IsNumeric(tbxHours.Text) 
+			OrElse Convert.ToInt32(tbxHours.Text) < cintMinWorkHours
+			Or Convert.ToInt32(tbxHours.Text) > cintMaxWorkHours Then
+				MessageBox.Show("Please, enter a valid number of hours worked", "Error")
+				tbxNumMonths.Text = ""
+				Return
+		End If
+		intHours = Convert.ToInt32(tbxHours.Text)
+		If Not IsNumeric(tbxRate.Text) 
+			OrElse Convert.ToDecimal(tbxRate.Text) < cdecMinPayPerHour
+			Or Convert.ToDecimal(tbxRate.Text) > cdecMaxPayPerHour Then
+				MessageBox.Show("Please, enter a valid hour rate", "Error")
+				tbxRate.Text = ""
+				Return
+		End If
+		decRate = Convert.ToInt32(tbxRate.Text)
+		decGrossPay = intHours * decRate
+		If intHours > 40 Then
+			Dim intOverTime As Integer = intHours - 40
+			decGrossPay += (intOverTime * decRate) / 2
+		End If
+		If radSingleTax.Checked = true Then
+			decTax = (decGrossPay * cdecTaxRateSingle) / 100
+		Else 
+			decTax = (decGrossPay * cdecTaxRateFamily) / 100
+		End If
+		decNetPay = decGrossPay - decTax
+		lblName.Text = strName + " : "
+		lblGross.Text = decGrossPay.ToString("C")
+		lblTax.Text = decTax.ToString("C")
+		lblNet.Text = decNetPay.ToString("C")
+	End Sub
+
+	Private Sub btnClear_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnClear.Click
+		tbxName.Text = ""
+		tbxHours.Text = ""
+		tbxRate.Text = ""
+		lblName.Text = ""
+		lblGross.Text = ""
+		lblTax.Text = ""
+		lblNet.Text = ""
+	End Sub
+
+	Private Sub btnExit_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnExit.Click
+		Application.Exit()
+	End Sub
+End Class</pre>
+
+</body>
+</html>

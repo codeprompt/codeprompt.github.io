@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-121424235-1"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+
+	  gtag('config', 'UA-121424235-1');
+	</script>
+
+	
+	<title>SimpleTaxCalculatorApp</title>
+	<script type="text/javascript">
+		function spoiler(id)
+		{
+			if(document.getElementById(id).style.display=='none') 
+				document.getElementById(id).style.display='';
+			else document.getElementById(id).style.display='none';
+		}
+		
+		function toclipboard() 
+		{
+			var copyText = document.getElementById("code").innerHTML;
+			copyStringToClipboard(copyText);
+		}
+		function copyStringToClipboard(str) 
+		{
+		   // Create new element
+		   var el = document.createElement('textarea');
+		   // Set value (string to be copied)
+		   el.value = str;
+		   // Set non-editable to avoid focus and move outside of view
+		   el.setAttribute('readonly', '');
+		   el.style = {position: 'absolute', left: '-9999px'};
+		   document.body.appendChild(el);
+		   // Select text inside element
+		   el.select();
+		   // Copy text to clipboard
+		   document.execCommand('copy');
+		   // Remove temporary element
+		   document.body.removeChild(el);
+		}
+	</script>
+	<style>
+		a, a:link, a:visited, a:hover, a:active, div.comment
+		{
+			color : #33cc33; 
+			font: italic 14px Georgia, serif;
+		}
+		
+		/* buttons */
+		section.press button 
+		{
+		  color: #fff;
+		  background-color: #6496c8;
+		  border: none;
+		  border-radius: 15px;
+		  box-shadow: 0 10px #27496d;
+		}
+		section.press button:hover,
+		section.press button.hover 
+		{
+		  background-color: #417cb8
+		}
+		section.press button:active,
+		section.press button.active 
+		{
+		  background-color: #417cb8;
+		  box-shadow: 0 5px #27496d;
+		  transform: translateY(5px);
+		}
+
+	</style>
+</head>
+
+<body style="margin-left : 20px; font-size: 14px;">
+
+<!-- TITLE -->
+	<section class="press">
+		<button class="press" onclick="toclipboard();" style="position: absolute; right: 67px; top: 26px; height: 34px; width: 40px;">copy</button>
+		<form method="get" action="SimpleTaxCalculatorApp.vb">
+					<button class="press" style="position: absolute; right: 25px; top: 26px; height: 34px; width: 40px;">save</button>
+		</form>
+		<form method="get" action="SimpleTaxCalculatorApp.htm">
+					<button class="press" style="position: absolute; right: 25px; top: 72px; height: 34px; width: 40px;">VB</button>
+		</form>
+	</section>
+
+	<pre id="code">Public Class Form1
+	Const cdecTax As Decimal = 8.75
+
+	Private Sub btnCalc_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnCalc.Click
+		Dim decPrice As Decimal = Convert.ToDecimal(tbxItemPrice.Text)
+		Dim decFinal As Decimal = decPrice + (decPrice * cdecTax) / 100
+		lblPrice.Text = tbxItemName.Text + " " + decPrice.ToString("C") +
+			", tax: " + cdecTax.ToString("F2") +
+			"%, total: " + decFinal.ToString("C")
+	End Sub
+
+	Private Sub btnClear_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnClear.Click
+		tbxItemName.Text = ""
+		tbxItemPrice.Text = ""
+		lblPrice.Text = ""
+	End Sub
+
+	Private Sub btnExit_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnExit.Click
+		Application.Exit()
+			End Sub					'intentianally misindented
+End Class</pre>
+
+</body>
+</html>
