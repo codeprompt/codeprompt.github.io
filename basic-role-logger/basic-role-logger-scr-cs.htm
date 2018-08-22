@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-121424235-1"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+
+	  gtag('config', 'UA-121424235-1');
+	</script>
+
+	
+	<title>Basic Role-logger</title>
+	<script type="text/javascript">
+		function spoiler(id)
+		{
+			if(document.getElementById(id).style.display=='none') 
+				document.getElementById(id).style.display='';
+			else document.getElementById(id).style.display='none';
+		}
+		
+		function toclipboard() 
+		{
+			var copyText = document.getElementById("code").innerHTML;
+			copyStringToClipboard(copyText);
+		}
+		function copyStringToClipboard(str) 
+		{
+		   // Create new element
+		   var el = document.createElement('textarea');
+		   // Set value (string to be copied)
+		   el.value = str;
+		   // Set non-editable to avoid focus and move outside of view
+		   el.setAttribute('readonly', '');
+		   el.style = {position: 'absolute', left: '-9999px'};
+		   document.body.appendChild(el);
+		   // Select text inside element
+		   el.select();
+		   // Copy text to clipboard
+		   document.execCommand('copy');
+		   // Remove temporary element
+		   document.body.removeChild(el);
+		}
+	</script>
+	<style>
+		a, a:link, a:visited, a:hover, a:active, div.comment
+		{
+			color : #33cc33; 
+			font: italic 14px Georgia, serif;
+		}
+		
+		/* buttons */
+		section.press button 
+		{
+		  color: #fff;
+		  background-color: #6496c8;
+		  border: none;
+		  border-radius: 15px;
+		  box-shadow: 0 10px #27496d;
+		}
+		section.press button:hover,
+		section.press button.hover 
+		{
+		  background-color: #417cb8
+		}
+		section.press button:active,
+		section.press button.active 
+		{
+		  background-color: #417cb8;
+		  box-shadow: 0 5px #27496d;
+		  transform: translateY(5px);
+		}
+
+	</style>
+</head>
+
+<body style="margin-left : 20px; font-size: 14px;">
+
+<!-- TITLE -->
+	<section class="press">
+		<button class="press" onclick="toclipboard();" style="position: absolute; right: 67px; top: 26px; height: 34px; width: 40px;">copy</button>
+		<form method="get" action="basic-role-logger.cs">
+					<button class="press" style="position: absolute; right: 25px; top: 26px; height: 34px; width: 40px;">save</button>
+		</form>
+		<form method="get" action="basic-role-logger-scr-cs.htm">
+					<button class="press" style="position: absolute; right: 25px; top: 72px; height: 34px; width: 40px;">C#</button>
+		</form>
+	</section>
+
+	<pre id="code">using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace codeprompt.github.io
+{
+    /// &lt;summary&gt;
+    /// Represents a log message role or importance.
+    /// &lt;/summary&gt;
+    public enum eLogType
+    {
+        Trace,
+        Debug,
+        Info,
+        Warning,
+        Error
+    }
+
+    /// &lt;summary&gt;
+    /// Represents a single log message.
+    /// &lt;/summary&gt;
+    public class LogEntry
+    {
+        eLogType _type;
+        string _message;
+        DateTime _timestamp;
+
+
+
+        /// &lt;summary&gt;
+        /// The importance/role of the log message
+        /// &lt;/summary&gt;
+        public eLogType Type
+        {
+            get
+            {
+                return _type;
+            }
+        }
+
+        /// &lt;summary&gt;
+        /// The actual message
+        /// &lt;/summary&gt;
+        public string Message
+        {
+            get
+            {
+                return _message;
+            }
+        }
+
+        /// &lt;summary&gt;
+        /// The creation time.
+        /// &lt;/summary&gt;
+        public DateTime TimeStamp
+        {
+            get
+            {
+                return _timestamp;
+            }
+        }
+
+
+
+        internal LogEntry(eLogType type, string message)
+        {
+            _type = type;
+            _message = (message == null) ? "" : message;
+            _timestamp = DateTime.Now;
+        }
+        internal LogEntry(DateTime timestamp, eLogType type, string message)
+        {
+            _timestamp = timestamp;
+            _type = type;
+            _message = (message == null) ? "" : message;
+            _timestamp = DateTime.Now;
+        }
+
+
+
+        /// &lt;summary&gt;
+        /// Get string representation of the log entry, in format TIME[TYPE] : MESSAGE.
+        /// &lt;/summary&gt;
+        /// &lt;param name="dateFormat"&gt;
+        /// The desired date format string.
+        /// For more information see "DateTime.ToString(string format)"
+        /// &lt;/param&gt;
+        /// &lt;returns&gt;The formated message string&lt;/returns&gt;
+        public string ToFullString(string dateFormat = "HH:mm:ss")
+        {
+            return _timestamp.ToString(dateFormat) + "[" + _type.ToString() + "] : " + _message;
+        }
+
+        /// &lt;summary&gt;
+        /// Get string representation of the log entry, in format TIME : MESSAGE.
+        /// &lt;/summary&gt;
+        /// &lt;param name="dateFormat"&gt;
+        /// The desired date format string.
+        /// For more information see "DateTime.ToString(string format)"
+        /// &lt;/param&gt;
+        /// &lt;returns&gt;The formated message string&lt;/returns&gt;
+        public string ToShortString(string dateFormat = "HH:mm:ss")
+        {
+            return _timestamp.ToString(dateFormat) + " : " + _message;
+        }
+
+        /// &lt;summary&gt;
+        /// Get string representation of the log entry, in format MESSAGE.
+        /// &lt;/summary&gt;
+        /// &lt;returns&gt;The formated message string&lt;/returns&gt;
+        public override string ToString()
+        {
+            return _message;
+        }
+    }
+
+    /// &lt;summary&gt;
+    /// Simple logger.
+    /// &lt;/summary&gt;
+    public class Logger
+    {
+        List&lt;LogEntry&gt; _entries;
+
+        /// &lt;summary&gt;
+        /// Get all log entries.
+        /// &lt;/summary&gt;
+        public List&lt;LogEntry&gt; Entries
+        {
+            get
+            {
+                List&lt;LogEntry&gt; li = new List&lt;LogEntry&gt;();
+                lock(_entries)
+                {
+                    foreach(LogEntry en in _entries)
+                    {
+                        if (en.Type &lt; OutputVerbosity) continue;
+                        li.Add(new LogEntry(en.TimeStamp, en.Type, en.Message));
+                    }
+                }
+                return li;
+            }
+        }
+
+        /// &lt;summary&gt;
+        /// Get all log entries, regardless of verbosity.
+        /// &lt;/summary&gt;
+        public List&lt;LogEntry&gt; AllEntries
+        {
+            get
+            {
+                List&lt;LogEntry&gt; li = new List&lt;LogEntry&gt;();
+                lock (_entries)
+                {
+                    foreach (LogEntry en in _entries)
+                    {
+                        li.Add(new LogEntry(en.TimeStamp, en.Type, en.Message));
+                    }
+                }
+                return li;
+            }
+        }
+
+        /// &lt;summary&gt;
+        /// The minimal Log verbosity.
+        /// Entries with lower importance will not be logged.
+        /// &lt;/summary&gt;
+        public eLogType LogVerbosity;
+
+        /// &lt;summary&gt;
+        /// The minimal Output verbosity.
+        /// Entries with lower importance will be logged but will not be outputted.
+        /// &lt;/summary&gt;
+        public eLogType OutputVerbosity;
+
+
+
+        /// &lt;summary&gt;
+        /// Ctor.
+        /// &lt;/summary&gt;
+        public Logger()
+        {
+            _entries = new List&lt;LogEntry&gt;();
+            LogVerbosity = eLogType.Trace;
+            OutputVerbosity = eLogType.Trace;
+        }
+
+        /// &lt;summary&gt;
+        /// Ctor.
+        /// &lt;/summary&gt;
+        /// &lt;param name="verbosity"&gt;
+        /// The desired minimum verbocity.
+        /// &lt;/param&gt;
+        public Logger(eLogType verbosity)
+        {
+            _entries = new List&lt;LogEntry&gt;();
+            LogVerbosity = verbosity;
+            OutputVerbosity = verbosity;
+        }
+
+        /// &lt;summary&gt;
+        /// Ctor.
+        /// &lt;/summary&gt;
+        /// &lt;param name="verbosityLog"&gt;The desired minimum logging verbocity.&lt;/param&gt;
+        /// &lt;param name="verbosityOutput"&gt;The desired minimum output verbocity.&lt;/param&gt;
+        public Logger(eLogType verbosityLog, eLogType verbosityOutput)
+        {
+            _entries = new List&lt;LogEntry&gt;();
+            LogVerbosity = verbosityLog;
+            OutputVerbosity = verbosityOutput;
+        }
+
+
+
+        /// &lt;summary&gt;
+        /// Clear all logs.
+        /// &lt;/summary&gt;
+        public void Clear()
+        {
+            lock (_entries)
+            {
+                _entries = new List&lt;LogEntry&gt;();
+            }
+        }
+		
+        /// &lt;summary&gt;
+        /// Log a trace entry. 
+        /// Use to log the most trivial stuff.
+        /// Usefull while debugging.
+        /// &lt;/summary&gt;
+        /// &lt;param name="message"&gt;The log message&lt;/param&gt;
+        public void LogTrace(string message)
+        {
+            Log(eLogType.Trace, message);
+        }
+
+        /// &lt;summary&gt;
+        /// Log a debug entry. 
+        /// Use to log debug information.
+        /// &lt;/summary&gt;
+        /// &lt;param name="message"&gt;The log message&lt;/param&gt;
+        public void LogDebug(string message)
+        {
+            Log(eLogType.Debug, message);
+        }
+
+        /// &lt;summary&gt;
+        /// Log an info entry. 
+        /// Use to log a regular execution information.
+        /// &lt;/summary&gt;
+        /// &lt;param name="message"&gt;The log message&lt;/param&gt;
+        public void LogInfo(string message)
+        {
+            Log(eLogType.Info, message);
+        }
+
+        /// &lt;summary&gt;
+        /// Log a warning entry. 
+        /// Use to log errors and important information.
+        /// &lt;/summary&gt;
+        /// &lt;param name="message"&gt;The log message&lt;/param&gt;
+        public void LogWarning(string message)
+        {
+            Log(eLogType.Warning, message);
+        }
+
+        /// &lt;summary&gt;
+        /// Log an error entry. 
+        /// Use to log critical or fatal errors.
+        /// &lt;/summary&gt;
+        /// &lt;param name="message"&gt;The log message&lt;/param&gt;
+        public void LogError(string message)
+        {
+            Log(eLogType.Error, message);
+        }
+
+        /// &lt;summary&gt;
+        /// Log an entry. 
+        /// &lt;/summary&gt;
+        /// &lt;param name="type"&gt;The type of the log entry&lt;/param&gt;
+        /// &lt;param name="message"&gt;The log message&lt;/param&gt;
+        public void Log(eLogType type, string message)
+        {
+            if (LogVerbosity &gt; type) return;
+            lock (_entries)
+            {
+                _entries.Add(new LogEntry(type, message));
+            }
+        }
+
+
+
+        /// &lt;summary&gt;
+        /// Get string representation of the log so far, in format TIME[TYPE] : MESSAGE.
+        /// &lt;/summary&gt;
+        /// &lt;param name="dateFormat"&gt;
+        /// The desired date format string.
+        /// For more information see "DateTime.ToString(string format)"
+        /// &lt;/param&gt;
+        /// &lt;returns&gt;The formated log string&lt;/returns&gt;
+        public string ToFullString(string dateFormat = "HH:mm:ss")
+        {
+            List&lt;LogEntry&gt; li = Entries;
+            if (li.Count == 0) return "";
+            else if (li.Count == 1) return li[0].ToFullString(dateFormat);
+
+            string output = li[0].ToFullString(dateFormat);
+            for (int i = 1; i &lt; li.Count; i++)
+            {
+                output += Environment.NewLine + li[i].ToFullString(dateFormat);
+            }
+
+            return output;
+        }
+
+        /// &lt;summary&gt;
+        /// Get string representation of the log so far, in format TIME : MESSAGE.
+        /// &lt;/summary&gt;
+        /// &lt;param name="dateFormat"&gt;
+        /// The desired date format string.
+        /// For more information see "DateTime.ToString(string format)"
+        /// &lt;/param&gt;
+        /// &lt;returns&gt;The formated log string&lt;/returns&gt;
+        public string ToShortString(string dateFormat = "HH:mm:ss")
+        {
+            List&lt;LogEntry&gt; li = Entries;
+            if (li.Count == 0) return "";
+            else if (li.Count == 1) return li[0].ToShortString(dateFormat);
+
+            string output = li[0].ToShortString(dateFormat);
+            for (int i = 1; i &lt; li.Count; i++)
+            {
+                output += Environment.NewLine + li[i].ToShortString(dateFormat);
+            }
+
+            return output;
+        }
+
+        /// &lt;summary&gt;
+        /// Get string representation of the log so far, in format MESSAGE.
+        /// &lt;/summary&gt;
+        /// &lt;returns&gt;The formated log string&lt;/returns&gt;
+        public override string ToString()
+        {
+            List&lt;LogEntry&gt; li = Entries;
+            if (li.Count == 0) return "";
+            else if(li.Count == 1) return li[0].ToString();
+
+            string output = li[0].ToString();
+            for(int i = 1; i &lt; li.Count; i++)
+            {
+                output += Environment.NewLine + li[i].ToString();
+            }
+
+            return output;
+        }
+    }
+}</pre>
+
+<!-- BODY -->
+
+
+</body>
+</html>

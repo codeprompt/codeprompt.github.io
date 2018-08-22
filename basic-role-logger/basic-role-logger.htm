@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+	
+	<title>Basic Role Logger</title>
+	<script type="text/javascript">
+		function spoiler(id)
+		{
+			if(document.getElementById(id).style.display=='none') 
+				document.getElementById(id).style.display='';
+			else document.getElementById(id).style.display='none';
+		}
+	</script>
+	<style>
+		a, a:link, a:visited, a:hover, a:active, div.comment
+		{
+			color : DarkCyan; 
+			font: italic 14px Georgia, serif;
+		}
+		
+		/* buttons */
+		section.press button 
+		{
+		  color: #fff;
+		  background-color: #6496c8;
+		  border: none;
+		  border-radius: 15px;
+		  box-shadow: 0 10px #27496d;
+		}
+		section.press button:hover,
+		section.press button.hover 
+		{
+		  background-color: #417cb8
+		}
+		section.press button:active,
+		section.press button.active 
+		{
+		  background-color: #417cb8;
+		  box-shadow: 0 5px #27496d;
+		  transform: translateY(5px);
+		}
+
+	</style>
+</head>
+
+<body style="margin-left : 20px; font-size: 14px;">
+
+<!-- TITLE -->
+	<h2 style="background-color : cyan;  font-size: 25px;"><br />Basic Role Logger</h2>
+	<section class="press">
+		<form method="get" action="basic-role-logger.pdf">
+					<button class="press" style="position: absolute; right: 67px; top: 26px; height: 34px; width: 40px;">pdf</button>
+		</form>
+		<form method="get" action="basic-role-logger-scr-cs.htm">
+					<button class="press" style="position: absolute; right: 25px; top: 26px; height: 34px; width: 40px;">scr</button>
+		</form>
+		
+		
+		
+	</section>
+	<br />
+
+<!-- BODY -->
+
+	<!-- Point -->
+	<a href=#! class="comment" onclick="spoiler('w10z5k1j359T')" style="margin-left : 30px;">1. Contents</a>
+	<div class="comment" id="w10z5k1j359T" style="margin-left : 60px; margin-right : 150px; display:none;">
+		<br />
+		
+			1. Contents.<br />
+			2. Introduction<br />
+			3. Background<br />
+			4. Using the code<br />
+			5. Overview<br />
+			7. Point Map<br />
+			8. Member Map - LogEntry<br />
+			9. Member Map - Logger<br />
+			
+	<br /></div><br />
+	
+	<!-- Point text -->
+	<a href=#! class="comment" onclick="spoiler('arsHmxSeaM0P')" style="margin-left : 30px;">2. Introduction</a>
+	<div class="comment" id="arsHmxSeaM0P" style="margin-left : 60px; margin-right : 150px; display:none;">
+		<br />
+
+		I think every software engineer knows what logging is. Anyways, here is a definition from techopedia.com:Data logging is the process of collecting and storing data over a period of time in order to analyze specific trends or record the data-based events/actions of a system, network or IT environment. It enables the tracking of all interactions through which data, files or applications are stored, accessed or modified on a storage device or application.<br /><br />
+	
+		In few words, a software developer uses data logging systems to collect different pieces of information during the execution of a given piece of software, in order to: show the user what the application does in real time, inspect the logs while tracing bugs, and much more. In other words this is the analog of a computer program keeping a diary.<br /><br />
+		
+		Each piece of data is called a log entry, and usually has a timestamp.
+		Also, different stuff is logged for different reasons. For example, one might log fatal errors in order to analyze them, while logging execution information to show to the user in the UI, and logging detailed debug information that can be "walked through" in case of a mysterious fatal error. This is why log entries often have different types or roles.
+		This can be viewed also from the perspective that an amateur user will need only basic information like "Started" and "Done" for example, more advanced user will like to see a bit more, a developer - yet more, and in case of a nontrivial issue the developer might need a very detailed log. This differentiation of log entries is based on message segnificance, or also called a level of Verbosity, and is most often used in the command-line tools.
+		This is why a log message often has a role/verbosity level, which in this paper is referred to as a log-entry type.<br /><br />
+
+		This is a basic in-memory logging system - fairly standard, lightweight and easy to use.
+		Logs are collected as LogEntry objects that can be manipulated in code or cast to different kind of string representations.
+		Also, entire logs can be retrieved as strings, based on log type or not.<br /><br />
+		
+		Note that this snippet does not support logging to a file, trace or a standard output. This will be covered in different papers/snippets<br /><br />
+	<br /><br /></div><br />
+	
+	<!-- Point text -->
+	<a href=#! class="comment" onclick="spoiler('arssmxSeaM0P')" style="margin-left : 30px;">3. Background</a>
+	<div class="comment" id="arssmxSeaM0P" style="margin-left : 60px; margin-right : 150px; display:none;">
+		<br />
+		
+			The code is mine, based on the functionality I've observed in different logger implementations on different projects. 
+			It is intentionally minimalistic and not a library - the software format that I'm actively trying to avoid, in favor of dynamically generated code.<br /><br />
+			
+			By the way, If you like this snippet, you might want to check out some of my other articles and source codes on my website:
+			https://codeprompt.github.io/basic-role-logger/basic-role-logger.htm 
+			
+	<br /><br /></div><br />
+	
+	<!-- Point text -->
+	<a href=#! class="comment" onclick="spoiler('arssmxSeaMQP')" style="margin-left : 30px;">4. Using the code</a>
+	<div class="comment" id="arssmxSeaMQP" style="margin-left : 60px; margin-right : 150px; display:none;">
+		<br />
+		
+		A new instance of the logger is created and Log methods are used "LogDebug(string)", "LogInfo(string)", "LogWarning(string)", "LogError(string)" and "Log(eLogType, string)" to log stuff.
+		Finally a text representation is retrieved as a string that can be displayed to the user or saved to a file.<br /><br />
+		
+		Alternatively, a list of entry objects is retrieved and iterated, and the message of each object is outputted in a different color and font depending on its role.<br /><br />
+		
+		Note that all methods and properties are thread-safe and use deep-cloning.
+		
+	<br /><br /></div><br />
+	
+	<!-- Point text -->
+	<a href=#! class="comment" onclick="spoiler('arssmxSeaMzP')" style="margin-left : 30px;">5. Overview</a>
+	<div class="comment" id="arssmxSeaMzP" style="margin-left : 60px; margin-right : 150px; display:none;">
+		<br />
+		
+		The enumeration "eLogType" enumerates the different roles a log message might have. 
+		Each log message has exactly one role.
+		<br /><br />
+		
+		The actual logging is done by the methods of the "Logger" class: "LogDebug(string)", "LogInfo(string)", "LogWarning(string)", "LogError(string)" and "Log(eLogType, string)". 
+		Later, "ToFullString()", "ToShortString()" or "ToString()" should be called to retrieve the logs text.<br /><br />
+		
+		Log entries might be retrieved, when a formatted string is undesirable - like in the case when the logs will be used in some programming logic.<br /><br />
+		
+		Also, logging might be restricted to certain types by the "LogVerbosity" and "OutputVerbosity". When set, entries with type precedence lower than the specified will be ignored. The type precedence is : "Trace" : 0, "Debug" : 1, "Info" : 2, "Warning" : 3, "Error" : 4. "LogVerbosity" restricts what is being logged, while "OutputVerbosity" restricts only what is being outputted, so if set, all entries will still be logged but not outputted, until the restriction is removed or "AllEntries" is used to retrieve all the entries.<br /><br />
+
+		Finally, all logs can be discarded by using "Clear()".<br /><br />
+		
+		The "LogEntry" class represents a single logged message.
+		It has a "Type" which represents an importance level or role of the message, a message "TimeStamp" represented by .Net "DateTime" object, and the actual message string - "Message".
+		
+	<br /><br /></div><br />
+	
+
+	<!-- Point text -->
+	<a href=#! class="comment" onclick="spoiler('MEhX4K76q4qX')" style="margin-left : 30px;">6. Point Map</a>
+	<div class="comment" id="MEhX4K76q4qX" style="margin-left : 60px; margin-right : 150px">
+		<br /><hr />
+		<table style="width:100%; background-color : cyan; margin:0; padding:0; color : #000000; font: bold italic 10px Georgia, serif;">
+    	
+			<!-- rows -->
+			<tr>
+				<td style="width:50%">eLogType</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Trace</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Debug</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Info</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Warning</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Error</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			
+			
+			<tr>
+				<td style="width:50%">LogEntry</td>
+				<td style="width:50%;"></td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.eLogType</td>
+				<td style="width:50%;">Type</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.string</td>
+				<td style="width:50%;">Message</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.DateTime</td>
+				<td style="width:50%;">TimeStamp</td> 
+			</tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr>
+				<td style="width:50%; color : #0000ff;">&emsp;&emsp;&emsp;_eLogType</td>
+				<td style="width:50%; color : #0000ff;">_type</td> 
+			</tr>
+			<tr>
+				<td style="width:50%; color : #0000ff;">&emsp;&emsp;&emsp;_string</td>
+				<td style="width:50%; color : #0000ff;">_message</td> 
+			</tr>
+			<tr>
+				<td style="width:50%; color : #0000ff;">&emsp;&emsp;&emsp;_DateTime</td>
+				<td style="width:50%; color : #0000ff;">_timestamp</td> 
+			</tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			
+			<tr>
+				<td style="width:50%; color : #0000ff;">&emsp;&emsp;&emsp;_(eLogType, string)</td>
+				<td style="width:50%; color : #0000ff;">type, message</td> 
+			</tr>
+			<tr>
+				<td style="width:50%; color : #0000ff;">&emsp;&emsp;&emsp;_(DateTime,eLogType, string)</td>
+				<td style="width:50%; color : #0000ff;">timestamp, type, message</td> 
+			</tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.ToFullString()&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;-&gt; string</td>
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.ToFullString(string)&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&emsp;&emsp;&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;-&gt; string</td>
+				<td style="width:50%;">dateFormat</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.ToShortString()&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;&emsp;&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;-&gt; string</td>
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.ToShortString(string)&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;&nbsp;-&gt; string</td>
+				<td style="width:50%;">dateFormat</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.ToString()&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;-&gt; string</td>
+			</tr>
+			
+			
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+
+			
+			<tr>
+				<td style="width:50%">Logger</td>
+			</tr>
+			<tr>
+				<td style="width:50%; color : #0000ff;">&emsp;&emsp;&emsp;_List&lt;LogEntry&gt;</td>
+				<td style="width:50%; color : #0000ff;">_entries</td> 
+			</tr>
+			<tr><td style="width:50%">&emsp;</td></tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.List&lt;LogEntry&gt;</td>
+				<td style="width:50%;">Entries</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.List&lt;LogEntry&gt;</td>
+				<td style="width:50%;">AllEntries</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.eLogType</td>
+				<td style="width:50%;">LogVerbosity</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.eLogType</td>
+				<td style="width:50%;">OutputVerbosity</td> 
+			</tr>
+			
+			<tr><td style="width:50%">&emsp;</td></tr>
+			
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.ToFullString()&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;-&gt; string</td>
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.ToFullString(string)&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&emsp;&emsp;&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;-&gt; string</td>
+				<td style="width:50%;">dateFormat</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.ToShortString()&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;&emsp;&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;-&gt; string</td>
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.ToShortString(string)&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;&nbsp;-&gt; string</td>
+				<td style="width:50%;">dateFormat</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.ToString()&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;-&gt; string</td>
+			</tr>
+			
+			<tr><td style="width:50%">&emsp;</td></tr>
+			
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.()</td>
+				<td style="width:50%;">RecordComplete</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.(eLogType)</td>
+				<td style="width:50%;">verbosity</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.(eLogType, eLogType)</td>
+				<td style="width:50%;">verbosityLog, verbosityOutput</td> 
+			</tr>
+			
+			<tr><td style="width:50%">&emsp;</td></tr>
+			
+	
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Clear()</td>
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.LogTrace(string)</td>
+				<td style="width:50%;">message</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.LogDebug(string)</td>
+				<td style="width:50%;">message</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.LogInfo(string)</td>
+				<td style="width:50%;">message</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.LogWarning(string)</td>
+				<td style="width:50%;">message</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.LogError(string)</td>
+				<td style="width:50%;">message</td> 
+			</tr>
+			<tr>
+				<td style="width:50%">&emsp;&emsp;&emsp;.Log(eLogType, string)</td>
+				<td style="width:50%;">type, message</td> 
+			</tr>
+	
+		</table><hr />
+	</div><br />
+	
+	<!-- Point text -->
+	<a href=#! class="comment" onclick="spoiler('MEhX4K76q4qa')" style="margin-left : 30px;">8. Member Map - LogEntry</a>
+	<div class="comment" id="MEhX4K76q4qa" style="margin-left : 60px; margin-right : 150px; display:none;">
+		<br /><hr />
+			
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">Type</span><br />
+				Gets the type of the log entry.
+			</div><br />
+			
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">Message</span><br />
+				Gets the actual message of the log entry.
+			</div><br />
+			
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">TimeStamp</span><br />
+				Gets the local time at the moment of logging of the entry.
+			</div><br />
+			
+			<div class="comment" style="color : #0000ff;">
+			Private backing fields("_type", "_message", "_timestamp") - these are the backing fields behind the properties above.<br />
+			When a public (get only)property is called the corresponding backing field value is returned.<br />
+			This is one of the most commonly-used (small) patterns in C#
+			</div><br />
+			<br /><br /><br /><br />
+			
+			<div class="comment" style="color : #0000ff;">
+				Internal constructors are used by the "Logger" to create the entry objects.<br />
+				The "LogEntry" objects are not intended to be generated outside or modified the logger,<br />
+				so there are no public constructors.
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">_(eLogType, string)</span><br />
+				The values set the corresponding fields. <br />
+				The timestamp is taken at the moment of calling the constructor(local time) <br />
+				and assigned to its corresponding field - "_timestamp".<br />
+				-&gt;DateTime.Now
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">_(DateTime, eLogType, string)</span><br />
+				The values set the corresponding fields. <br />
+				This is used to clone the object, so the timestamp parameter.
+			</div><br />
+			<br /><br /><br /><br />
+			
+			
+			
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">.ToFullString()&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;-&gt;string</span><br />
+				Cast the _timeStamp to string of format "HH:mm:ss", <br />
+				cast the _type to string, and concatenate with the _message field, <br />
+				so the result is something like that: "17:46:29[Trace] : My logged message"<br />
+				-&gt;DateTime.ToString("HH:mm:ss")<br />
+			</div><br />
+			
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">.ToFullString(string dateFormat)&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;-&gt;string</span><br />
+				Cast the _timeStamp to string of format provided in the "dateFormat" parameter, <br />
+				cast the _type to string, and concatenate with the _message field, <br />
+				so the result is something like that: "17:46:29[Trace] : My logged message".<br />
+				The dateFormat must be acceptable to the "DateTime.ToString(string)" method.<br />
+				You can look into that further here : https://docs.microsoft.com/en-us/dotnet/standard/base-types/custom-date-and-time-format-strings <br />
+				or by searching online for something like "Custom Date and Time Format Strings .Net C#" e.g.<br />
+				-&gt;DateTime.ToString(dateFormat)<br />
+			</div><br />
+			
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">.ToShortString()&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;-&gt;string</span><br />
+				Cast the _timeStamp to string of format "HH:mm:ss" nd concatenate with the _message field, <br />
+				so the result is something like that: "17:46:29 : My logged message"<br />
+				-&gt;DateTime.ToString("HH:mm:ss")<br />
+			</div><br />
+			
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">.ToShortString(string dateFormat)&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;-&gt;string</span><br />
+				Cast the _timeStamp to string of format provided in the "dateFormat" parameter and concatenate with the _message field,<br /> 
+				so the result is something like that: "17:46:29 : My logged message".<br />
+				The dateFormat must be acceptable to the "DateTime.ToString(string)" method.<br />
+				You can look into that further here : https://docs.microsoft.com/en-us/dotnet/standard/base-types/custom-date-and-time-format-strings <br />
+				or by searching online for something like "Custom Date and Time Format Strings .Net C#" e.g.<br />
+				-&gt;DateTime.ToString(dateFormat)<br />
+			</div><br />
+			
+			<div class="comment" style="color : #0000ff;">
+			<span style="font-weight: bold;">.ToString()&emsp;&nbsp;&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;-&gt;string</span><br />
+				Return the _message.
+			</div><br />
+			<hr />
+	</div><br />
+	
+	<!-- Point text -->
+	<a href=#! class="comment" onclick="spoiler('sEhX4K76q4qa')" style="margin-left : 30px;">9. Member Map - Logger</a>
+	<div class="comment" id="sEhX4K76q4qa" style="margin-left : 60px; margin-right : 150px; display:none;">
+		<br /><hr />
+			
+			<div class="comment" style="color : #0000ff;">
+				The minimal Log verbosity.<br />
+				Entries with lower importance will not be logged.<br />
+				<span style="font-weight: bold;">LogVerbosity</span><br />
+			</div><br />
+			
+			<div class="comment" style="color : #0000ff;">
+				The minimal Output verbosity.<br />
+				Entries with lower importance will be logged but will not be outputted.<br />
+				<span style="font-weight: bold;">OutputVerbosity</span><br />
+			</div><br /><br /><br /><br />
+	
+			<div class="comment" style="color : #0000ff;">
+				<span style="font-weight: bold;">AllEntries</span><br />
+				Gets all the logged entries from the backing storage field "_entries", regardless of verbosity:
+				Create new empty List of LogEntry, Lock _entries and iterate through each entry
+				creating a new entry with the same type, message and timestamp, and adding it to the list.
+				Then return the list.
+				-&gt;new LogEntry(entry.TimeStamp, entry.Type, entry.Message)
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+				<span style="font-weight: bold;">Entries</span><br />
+				Gets all the logged entries from the backing storage field "_entries":<br />
+				Create new empty List of LogEntry, Lock _entries and iterate through each entry:<br />
+				If the type of the current entry is with lower precedence than the current set OutputVerbosity then ignore it<br />
+				(the precedence goes like that: "Trace", "Debug", "Info", "Warning" and most significant "Error"),<br />
+				else create a new entry with the same type, message and timestamp, and add it to the list.<br />
+				Then return the list.<br />
+				-&gt;new LogEntry(entry.TimeStamp, entry.Type, entry.Message)<br />
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+				<span style="font-weight: bold;">.ToFullString()&nbsp;&nbsp;&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;-&gt;string</span><br />
+				Get all the outputable entries by calling the "Entries" property.<br />
+				Get string representation of each by calling ToFullString() and join those<br />
+				with "new line" escape sequence string as a separator.<br />
+				For more info check the corresponding method in Member Map - LogEntry<br />
+				-&gt;entry.ToFullString()
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+				<span style="font-weight: bold;">.ToFullString(string dateFormat)&emsp;&nbsp;&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;-&gt;string</span><br />
+				Get all the outputable entries by calling the "Entries" property.
+				Get string representation of each by calling ToFullString(dateFormat) and join those
+				with "new line" escape sequence string as a separator.
+				For more info check the corresponding method in Member Map - LogEntry
+				-&gt;entry.ToFullString(dateFormat)
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+				<span style="font-weight: bold;">.ToShortString()&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;-&gt;string</span><br />
+				Get all the outputable entries by calling the "Entries" property.<br />
+				Get string representation of each by calling ToShortString() and join those<br />
+				with "new line" escape sequence string as a separator.<br />
+				For more info check the corresponding method in Member Map - LogEntry<br />
+				-&gt;entry.ToShortString()
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+				<span style="font-weight: bold;">.ToShortString(string dateFormat)&nbsp;&nbsp;&emsp;&nbsp;&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;-&gt;string</span><br />
+				Get all the outputable entries by calling the "Entries" property.<br />
+				Get string representation of each by calling ToShortString(dateFormat) and join those<br />
+				with "new line" escape sequence string as a separator.<br />
+				For more info check the corresponding method in Member Map - LogEntry<br />
+				-&gt;entry.ToShortString(dateFormat)
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+				<span style="font-weight: bold;">.ToString()&emsp;&emsp;&emsp;&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;-&gt;string</span><br />
+				Get all the outputable entries by calling the "Entries" property.<br />
+				Get string representation of each by calling ToString() and join those<br />
+				with "new line" escape sequence string as a separator.<br />
+				For more info check the corresponding method in Member Map - LogEntry<br />
+				-&gt;entry.ToString()
+			</div><br /><br /><br /><br />
+			
+			
+			<div class="comment" style="color : #0000ff;">
+				<span style="font-weight: bold;">.()</span><br />
+				<span style="font-weight: bold;">.(eLogType verbosity)</span><br />
+				<span style="font-weight: bold;">.(eLogType verbosityLog, eLogType verbosityOutput)</span><br />
+				Ctors. Pretty much self explanatory.
+			</div><br /><br /><br /><br />
+			
+			
+			<div class="comment" style="color : #0000ff;">
+				<span style="font-weight: bold;">.LogTrace(string)</span><br />
+				Log the message with type "Trace".<br />
+				-&gt;Log(eLogType.Trace, message)
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+				<span style="font-weight: bold;">.LogDebug(string)</span><br />
+				Log the message with type "Debug".<br />
+				-&gt;Log(eLogType.Debug, message)
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+				<span style="font-weight: bold;">.LogInfo(string)</span><br />
+				Log the message with type "Info".<br />
+				-&gt;Log(eLogType.Info, message)
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+				<span style="font-weight: bold;">.LogWarning(string)</span><br />
+				Log the message with type "Warning".<br />
+				-&gt;Log(eLogType.Warning, message)
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+				<span style="font-weight: bold;">.LogError(string)</span><br />
+				Log the message with type "Error".<br />
+				-&gt;Log(eLogType.Error, message)
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+				<span style="font-weight: bold;">.Log(eLogType, string)</span><br />
+				If the "LogVerbosity" is greater then "type" return.
+				else create new "LogEntry", lock "_entries" and add it to "_entries".
+				-&gt;new LogEntry(type, message)
+			</div><br />
+			<div class="comment" style="color : #0000ff;">
+				<span style="font-weight: bold;">.Clear()</span><br />
+				Remove all the stored entries.
+			</div><br />
+			
+			<hr />
+			
+			
+	</div><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+<!-- FOOTER -->
+	<br /><br />
+	<h2 style="background-color : cyan; "><br />
+	<span style="font: bold italic 14px Georgia, serif; color:gray; margin-left:10px;">Viktor Chernev (vchernev91@abv.bg)</span>
+	<br />
+	<span style="font: bold italic 14px Georgia, serif; color:gray; margin-left:10px;">https://codeprompt.github.io/basic-role-logger/basic-role-logger.htm</span>
+	<br />
+	<span style="font: bold italic 14px Georgia, serif; color:gray; margin-left:10px; font-size: 12px;">22 Aug 2018</span></h2>
+
+</body>
+</html>
