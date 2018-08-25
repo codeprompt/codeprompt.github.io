@@ -131,10 +131,10 @@ namespace codeprompt.github.io
                 List<LogEntry> li = new List<LogEntry>();
                 lock(_entries)
                 {
-                    foreach(LogEntry en in _entries)
+                    for(int i = 0; i < _entries.Count; i++)
                     {
-                        if (en.Type < OutputVerbosity) continue;
-                        li.Add(new LogEntry(en.TimeStamp, en.Type, en.Message));
+                        if (_entries[i].Type < OutputVerbosity) continue;
+                        li.Add(new LogEntry(_entries[i].TimeStamp, _entries[i].Type, _entries[i].Message));
                     }
                 }
                 return li;
@@ -151,9 +151,9 @@ namespace codeprompt.github.io
                 List<LogEntry> li = new List<LogEntry>();
                 lock (_entries)
                 {
-                    foreach (LogEntry en in _entries)
+                    for (int i = 0; i < _entries.Count; i++)
                     {
-                        li.Add(new LogEntry(en.TimeStamp, en.Type, en.Message));
+                        li.Add(new LogEntry(_entries[i].TimeStamp, _entries[i].Type, _entries[i].Message));
                     }
                 }
                 return li;
