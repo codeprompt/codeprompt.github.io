@@ -181,7 +181,7 @@ namespace codeprompt.github.io
         /// For more information see "DateTime.ToString(string format)"
         /// &lt;/param&gt;
         /// &lt;returns&gt;The formated message string&lt;/returns&gt;
-        public string ToFullString(string dateFormat = "HH:mm:ss")
+        public string ToFullString(string dateFormat = "hh:mm:ss")
         {
             return _timestamp.ToString(dateFormat) + "[" + _type.ToString() + "] : " + _message;
         }
@@ -194,7 +194,7 @@ namespace codeprompt.github.io
         /// For more information see "DateTime.ToString(string format)"
         /// &lt;/param&gt;
         /// &lt;returns&gt;The formated message string&lt;/returns&gt;
-        public string ToShortString(string dateFormat = "HH:mm:ss")
+        public string ToShortString(string dateFormat = "hh:mm:ss")
         {
             return _timestamp.ToString(dateFormat) + " : " + _message;
         }
@@ -392,7 +392,7 @@ namespace codeprompt.github.io
         /// For more information see "DateTime.ToString(string format)"
         /// &lt;/param&gt;
         /// &lt;returns&gt;The formated log string&lt;/returns&gt;
-        public string ToFullString(string dateFormat = "HH:mm:ss")
+        public string ToFullString(string dateFormat = "hh:mm:ss")
         {
             List&lt;LogEntry&gt; li = Entries;
             if (li.Count == 0) return "";
@@ -415,7 +415,7 @@ namespace codeprompt.github.io
         /// For more information see "DateTime.ToString(string format)"
         /// &lt;/param&gt;
         /// &lt;returns&gt;The formated log string&lt;/returns&gt;
-        public string ToShortString(string dateFormat = "HH:mm:ss")
+        public string ToShortString(string dateFormat = "hh:mm:ss")
         {
             List&lt;LogEntry&gt; li = Entries;
             if (li.Count == 0) return "";
